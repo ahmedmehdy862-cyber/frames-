@@ -98,6 +98,57 @@
       ip.style.display='';
       ip.querySelector('img').src = f.dataUrl || f.image;
     }
+    renderLayers(f);
+    renderStickers(f.stickers||[]);
+  }
+
+  function getDefaultLayerOrder(f){
+    const keys = Object.keys(f.text||{});
+    return ['photo','frame', ...keys, ...(f.stickers||[]).map(s=>s.id)];
+  }
+  function renderLayers(f){
+    const box=$('layersList'); if(!box) return;
+    box.innerHTML='';
+    const order = f.layerOrder && f.layerOrder.length ? f.layerOrder : getDefaultLayerOrder(f);
+    // ensure all text keys and stickers are present
+    const all = getDefaultLayerOrder(f);
+    const missing = all.filter(x=> !order.includes(x));
+    const full = [...order, ...missing].filter((v,i,a)=> a.indexOf(v)===i);
+    full.forEach(id=>{
+      let type='text', label=id;
+      if(id==='photo'){ type='photo'; label='صورة المستخدم'; }
+      else if(id==='frame'){ type='frame'; label='الفريم'; }
+      else if(id.startsWith('sticker')){ type='sticker'; const s=(f.stickers||[]).find(x=>x.id===id); label=s? s.name : id; }
+      const div=document.createElement('div');
+      div.className='layer-item layer-item--'+type; div.draggable=true; div.dataset.id=id;
+      div.innerHTML=`<span class="layer-item__icon">${type==='photo'?'🖼': type==='frame'?'🖼️': type==='sticker'?'⭐':'T'}</span><span class="layer-item__name">${label}</span><span class="layer-item__type">${type}</span><span class="layer-item__actions"><button type="button" data-up>↑</button><button type="button" data-down>↓</button></span>`;
+      box.appendChild(div);
+    });
+    bindLayerDrag();
+  }
+  function bindLayerDrag(){
+    const list=$('layersList'); let drag=null;
+    list.querySelectorAll('.layer-item').forEach(it=>{
+      it.addEventListener('dragstart',()=>{ drag=it; it.classList.add('dragging'); });
+      it.addEventListener('dragend',()=>{ it.classList.remove('dragging'); drag=null; syncLayerOrder(); });
+      it.addEventListener('dragover', e=>{ e.preventDefault(); if(drag && drag!==it){ const after = [...list.children].indexOf(it) > [...list.children].indexOf(drag); if(after) it.after(drag); else it.before(drag); }});
+      it.querySelector('[data-up]')?.addEventListener('click',()=>{ if(it.previousElementSibling) it.previousElementSibling.before(it); syncLayerOrder(); });
+      it.querySelector('[data-down]')?.addEventListener('click',()=>{ if(it.nextElementSibling) it.nextElementSibling.after(it); syncLayerOrder(); });
+    });
+  }
+  function syncLayerOrder(){ drawPreview(); }
+  function getLayerOrderFromDOM(){ return [...document.querySelectorAll('#layersList .layer-item')].map(x=> x.dataset.id); }
+  function renderStickers(list){
+    const box=$('stickersBox'); if(!box) return; box.innerHTML='';
+    list.forEach((s,i)=>{
+      const d=document.createElement('div'); d.className='text-field'; d.dataset.sid=s.id;
+      d.innerHTML=`<div class="text-field__head"><strong>ملصق: ${s.id}</strong><button type="button" data-del>حذف</button></div><label>الاسم<input data-f="name" class="input" value="${s.name||''}"></label><label>الصورة<input data-f="image" class="input" dir="ltr" value="${s.image||''}"><input type="file" data-file accept="image/*" class="input" style="margin-top:4px"></label><div class="admin-grid4"><label>X<input data-f="x" type="number" class="input" value="${s.x||0}"></label><label>Y<input data-f="y" type="number" class="input" value="${s.y||0}"></label><label>W<input data-f="w" type="number" class="input" value="${s.w||200}"></label><label>H<input data-f="h" type="number" class="input" value="${s.h||200}"></label></div>`;
+      box.appendChild(d);
+      d.querySelector('[data-del]').addEventListener('click',()=>{ d.remove(); // also remove from layers
+        const li=document.querySelector(`#layersList [data-id="${s.id}"]`); if(li) li.remove(); drawPreview(); });
+      d.querySelectorAll('input').forEach(inp=> inp.addEventListener('input', drawPreview));
+      const fileInp=d.querySelector('[data-file]'); if(fileInp) fileInp.addEventListener('change', e=>{ const file=e.target.files[0]; if(!file) return; const r=new FileReader(); r.onload=()=>{ d.querySelector('[data-f="image"]').value=r.result; drawPreview(); }; r.readAsDataURL(file); });
+    });
   }
 
   function renderTexts(textObj){
@@ -156,6 +207,12 @@
     });
     const colors=$('fColors').value.split(',').map(s=>s.trim()).filter(Boolean);
     const vis=document.querySelector('input[name="vis"]:checked')?.value||'public';
+    const layerOrder = getLayerOrderFromDOM();
+    const stickers=[];
+    document.querySelectorAll('#stickersBox [data-sid]').forEach(row=>{
+      const get=f=> row.querySelector(`[data-f="${f}"]`)?.value||'';
+      stickers.push({ id: row.dataset.sid, name: get('name')||row.dataset.sid, image: get('image'), x:+get('x')||0, y:+get('y')||0, w:+get('w')||200, h:+get('h')||200 });
+    });
     return {
       id,
       name:$('fName').value.trim()||id,
@@ -165,6 +222,8 @@
       photoArea:{ x:+$('pX').value||0, y:+$('pY').value||0, width:+$('pW').value||500, height:+$('pH').value||500 },
       textColors: colors.length?colors:['#FFFFFF'],
       text,
+      stickers: stickers.length? stickers : undefined,
+      layerOrder,
       visibility: vis,
       accessKey: $('fKey').value.trim()||genKey()
     };
@@ -191,45 +250,39 @@
     navigator.clipboard.writeText(link).then(()=> App.showToast('تم نسخ الرابط','success')).catch(()=> prompt('انسخ الرابط:',link));
   }
 
-  // Canvas preview with drag
+  // Canvas preview with layers
   function drawPreview(){
     const canvas=$('adminCanvas'); if(!canvas) return;
     const ctx=canvas.getContext('2d');
     const f=collectForm(); if(!f) return;
-    // clear
     ctx.fillStyle='#e8e6e1'; ctx.fillRect(0,0,canvas.width,canvas.height);
-    // scale factor
     const scale = canvas.width / f.canvasWidth;
-    // draw frame image if loaded
-    const imgSrc = $('fImage').value.trim();
-    // try cache
-    if(imgSrc && imgCache[imgSrc]?.complete){
-      ctx.drawImage(imgCache[imgSrc],0,0,canvas.width,canvas.height);
-    } else if(imgSrc){
-      const im=new Image();
-      im.onload=()=>{ imgCache[imgSrc]=im; drawPreview(); };
-      im.onerror=()=>{};
-      im.src=imgSrc.startsWith('data:')?imgSrc:imgSrc;
-      // also show placeholder rect
-    }
-    // photoArea
-    ctx.save();
-    ctx.strokeStyle='#FBAE42'; ctx.lineWidth=2; ctx.setLineDash([6,4]);
-    ctx.fillStyle='rgba(251,174,66,0.25)';
-    const px=f.photoArea.x*scale, py=f.photoArea.y*scale, pw=f.photoArea.width*scale, ph=f.photoArea.height*scale;
-    ctx.fillRect(px,py,pw,ph); ctx.strokeRect(px,py,pw,ph);
-    ctx.fillStyle='#FBAE42'; ctx.font='12px Cairo'; ctx.fillText('الصورة',px+6,py+14);
-    ctx.restore();
-    // texts
-    document.querySelectorAll('.text-field').forEach(row=>{
-      const k=row.querySelector('[data-field="key"]').value.trim();
-      const x=+row.querySelector('[data-field="x"]').value||0;
-      const y=+row.querySelector('[data-field="y"]').value||0;
-      const col=row.querySelector('[data-field="color"]').value||'#FBAE42';
-      ctx.fillStyle=col;
-      ctx.beginPath(); ctx.arc(x*scale,y*scale,6,0,Math.PI*2); ctx.fill();
-      ctx.fillStyle='#0d1a30'; ctx.font='10px Cairo'; ctx.textAlign='center'; ctx.fillText(k,x*scale,y*scale-10);
-    });
+    const order = getLayerOrderFromDOM();
+    // helper to draw each layer
+    const drawLayer = (id)=>{
+      if(id==='photo'){
+        ctx.save(); ctx.strokeStyle='#5E3BFF'; ctx.lineWidth=2; ctx.setLineDash([6,4]); ctx.fillStyle='rgba(94,59,255,0.22)';
+        const px=f.photoArea.x*scale, py=f.photoArea.y*scale, pw=f.photoArea.width*scale, ph=f.photoArea.height*scale;
+        ctx.fillRect(px,py,pw,ph); ctx.strokeRect(px,py,pw,ph); ctx.fillStyle='#5E3BFF'; ctx.font='11px Cairo'; ctx.fillText('الصورة',px+6,py+14); ctx.restore();
+      } else if(id==='frame'){
+        const imgSrc=$('fImage').value.trim();
+        if(imgSrc && imgCache[imgSrc]?.complete) ctx.drawImage(imgCache[imgSrc],0,0,canvas.width,canvas.height);
+        else if(imgSrc){ const im=new Image(); im.onload=()=>{ imgCache[imgSrc]=im; drawPreview(); }; im.src=imgSrc; }
+      } else if(id.startsWith('sticker')){
+        const row=document.querySelector(`#stickersBox [data-sid="${id}"]`);
+        if(!row) return; const imgSrc=row.querySelector('[data-f="image"]').value.trim(); if(!imgSrc) return;
+        const x=+row.querySelector('[data-f="x"]').value||0, y=+row.querySelector('[data-f="y"]').value||0, w=+row.querySelector('[data-f="w"]').value||200, h=+row.querySelector('[data-f="h"]').value||200;
+        if(imgCache[imgSrc]?.complete) ctx.drawImage(imgCache[imgSrc], x*scale, y*scale, w*scale, h*scale);
+        else { const im=new Image(); im.onload=()=>{ imgCache[imgSrc]=im; drawPreview(); }; im.src=imgSrc; ctx.strokeStyle='#2d8a4e'; ctx.strokeRect(x*scale,y*scale,w*scale,h*scale); }
+      } else {
+        const row=[...document.querySelectorAll('.text-field')].find(r=> r.querySelector('[data-field="key"]').value===id); if(!row) return;
+        const x=+row.querySelector('[data-field="x"]').value||0, y=+row.querySelector('[data-field="y"]').value||0;
+        const col=row.querySelector('[data-field="color"]').value||'#FF2D7A';
+        ctx.fillStyle=col; ctx.beginPath(); ctx.arc(x*scale,y*scale,7,0,Math.PI*2); ctx.fill(); ctx.fillStyle='#fff'; ctx.font='7px Cairo'; ctx.textAlign='center'; ctx.fillText('T',x*scale,y*scale+3);
+        ctx.fillStyle='#0D1020'; ctx.font='10px Cairo'; ctx.fillText(id,x*scale,y*scale-10);
+      }
+    };
+    order.forEach(drawLayer);
   }
 
   function canvasToFrameCoords(e,canvas){
@@ -383,6 +436,24 @@
       }; r.readAsText(file);
     });
     $('btnImport').addEventListener('click',()=> $('importFile').click());
+    // layers addons
+    const addStickerBtn=$('btnAddSticker'); if(addStickerBtn) addStickerBtn.addEventListener('click',()=>{
+      const sid='sticker_'+Date.now().toString(36).slice(-4);
+      const box=$('stickersBox');
+      const s={id:sid, name:'ملصق جديد', image:'', x:1000, y:500, w:300, h:300};
+      // create row
+      const d=document.createElement('div'); d.className='text-field'; d.dataset.sid=s.id;
+      d.innerHTML=`<div class="text-field__head"><strong>ملصق: ${s.id}</strong><button type="button" data-del>حذف</button></div><label>الاسم<input data-f="name" class="input" value="${s.name}"></label><label>الصورة<input data-f="image" class="input" dir="ltr" value=""><input type="file" data-file accept="image/*" class="input" style="margin-top:4px"></label><div class="admin-grid4"><label>X<input data-f="x" type="number" class="input" value="${s.x}"></label><label>Y<input data-f="y" type="number" class="input" value="${s.y}"></label><label>W<input data-f="w" type="number" class="input" value="${s.w}"></label><label>H<input data-f="h" type="number" class="input" value="${s.h}"></label></div>`;
+      box.appendChild(d);
+      // add to layers list
+      const layers=$('layersList'); const li=document.createElement('div'); li.className='layer-item layer-item--sticker'; li.draggable=true; li.dataset.id=s.id; li.innerHTML=`<span class="layer-item__icon">⭐</span><span class="layer-item__name">${s.name}</span><span class="layer-item__type">sticker</span><span class="layer-item__actions"><button type="button" data-up>↑</button><button type="button" data-down>↓</button></span>`; layers.appendChild(li); bindLayerDrag();
+      d.querySelector('[data-del]').addEventListener('click',()=>{ d.remove(); const el=document.querySelector(`#layersList [data-id="${s.id}"]`); if(el) el.remove(); drawPreview(); });
+      d.querySelectorAll('input').forEach(inp=> inp.addEventListener('input', drawPreview));
+      const fI=d.querySelector('[data-file]'); if(fI) fI.addEventListener('change', e=>{ const file=e.target.files[0]; if(!file) return; const r=new FileReader(); r.onload=()=>{ d.querySelector('[data-f="image"]').value=r.result; li.querySelector('.layer-item__name').textContent=d.querySelector('[data-f="name"]').value||s.id; drawPreview(); }; r.readAsDataURL(file); });
+      d.querySelector('[data-f="name"]').addEventListener('input', ()=> li.querySelector('.layer-item__name').textContent=d.querySelector('[data-f="name"]').value||s.id);
+      drawPreview();
+    });
+    const resetLayersBtn=$('btnResetLayers'); if(resetLayersBtn) resetLayersBtn.addEventListener('click',()=>{ if(!current) return; delete current.layerOrder; renderLayers(current); drawPreview(); App.showToast('تمت إعادة ضبط الترتيب','info'); });
     $('btnBuildData').addEventListener('click',()=> App.showToast('شغّل: node tools/build-frames-data.js بعد رفع الصور','info',6000));
     document.querySelectorAll('.filter-btn').forEach(b=>{
       b.addEventListener('click',()=>{ document.querySelectorAll('.filter-btn').forEach(x=>x.classList.remove('active')); b.classList.add('active'); filter=b.dataset.filter; renderList(); });

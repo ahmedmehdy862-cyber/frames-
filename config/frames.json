@@ -5,15 +5,61 @@
     "image": "assets/frames/codemakers.webp",
     "canvasWidth": 2500,
     "canvasHeight": 2500,
-    "photoArea": { "x": 877, "y": 881, "width": 748, "height": 748 },
-    "textColors": ["#FFFFFF", "#FBAE42"],
+    "photoArea": {
+      "x": 877,
+      "y": 881,
+      "width": 748,
+      "height": 748
+    },
+    "textColors": [
+      "#FFFFFF",
+      "#FBAE42"
+    ],
     "visibility": "public",
     "accessKey": "cm2024a",
     "text": {
-      "name": { "x": 1250, "y": 1873, "fontSize": 72, "fontWeight": "bold", "color": "#FFFFFF", "align": "center", "label": "الاسم", "placeholder": "أدخل اسمك" },
-      "role": { "x": 1250, "y": 2036, "fontSize": 52, "fontWeight": "bold", "color": "#FFFFFF", "align": "center", "label": "العضوية", "value": "Code Makers member" },
-      "track": { "x": 1250, "y": 2200, "fontSize": 50, "fontWeight": "bold", "color": "#FFFFFF", "align": "center", "label": "التراك", "options": ["Data analysis-Season1", "UI/UX-Season1", "Backend-Season1"] }
-    }
+      "name": {
+        "x": 1250,
+        "y": 1873,
+        "fontSize": 72,
+        "fontWeight": "bold",
+        "color": "#FFFFFF",
+        "align": "center",
+        "label": "الاسم",
+        "placeholder": "أدخل اسمك"
+      },
+      "role": {
+        "x": 1250,
+        "y": 2036,
+        "fontSize": 52,
+        "fontWeight": "bold",
+        "color": "#FFFFFF",
+        "align": "center",
+        "label": "العضوية",
+        "value": "Code Makers member"
+      },
+      "track": {
+        "x": 1250,
+        "y": 2200,
+        "fontSize": 50,
+        "fontWeight": "bold",
+        "color": "#FFFFFF",
+        "align": "center",
+        "label": "التراك",
+        "options": [
+          "Data analysis-Season1",
+          "UI/UX-Season1",
+          "Backend-Season1"
+        ]
+      }
+    },
+    "layerOrder": [
+      "photo",
+      "frame",
+      "name",
+      "role",
+      "track"
+    ]
   },
   {
     "id": "midnight-gold",
@@ -21,14 +67,57 @@
     "image": "assets/frames/midnight-gold.webp",
     "canvasWidth": 2500,
     "canvasHeight": 2500,
-    "photoArea": { "x": 550, "y": 300, "width": 1400, "height": 1400 },
-    "textColors": ["#F3ECDC", "#FBAE42", "#C9A35C"],
+    "photoArea": {
+      "x": 550,
+      "y": 300,
+      "width": 1400,
+      "height": 1400
+    },
+    "textColors": [
+      "#F3ECDC",
+      "#FBAE42",
+      "#C9A35C"
+    ],
     "visibility": "public",
     "accessKey": "mg2024b",
     "text": {
-      "name": { "x": 1250, "y": 1890, "fontSize": 96, "fontWeight": "bold", "color": "#F3ECDC", "align": "center", "label": "الاسم", "placeholder": "أدخل الاسم" },
-      "role": { "x": 1250, "y": 2020, "fontSize": 56, "fontWeight": "bold", "color": "#FBAE42", "align": "center", "label": "المسمى أو العضوية", "placeholder": "أدخل المسمى" },
-      "note": { "x": 1250, "y": 2160, "fontSize": 46, "fontWeight": "normal", "color": "#F3ECDC", "align": "center", "label": "كلمة الشكر", "placeholder": "شكراً وتقديراً" }
-    }
+      "name": {
+        "x": 1250,
+        "y": 1890,
+        "fontSize": 96,
+        "fontWeight": "bold",
+        "color": "#F3ECDC",
+        "align": "center",
+        "label": "الاسم",
+        "placeholder": "أدخل الاسم"
+      },
+      "role": {
+        "x": 1250,
+        "y": 2020,
+        "fontSize": 56,
+        "fontWeight": "bold",
+        "color": "#FBAE42",
+        "align": "center",
+        "label": "المسمى أو العضوية",
+        "placeholder": "أدخل المسمى"
+      },
+      "note": {
+        "x": 1250,
+        "y": 2160,
+        "fontSize": 46,
+        "fontWeight": "normal",
+        "color": "#F3ECDC",
+        "align": "center",
+        "label": "كلمة الشكر",
+        "placeholder": "شكراً وتقديراً"
+      }
+    },
+    "layerOrder": [
+      "photo",
+      "frame",
+      "name",
+      "role",
+      "note"
+    ]
   }
 ]

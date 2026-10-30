@@ -51,3 +51,14 @@ label small{color:#7c7f90}
 .modal__card{background:#fff;padding:20px;border-radius:16px;max-width:400px;width:90%}
 .toast-container{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:999;display:flex;flex-direction:column;gap:8px}
 @media(max-width:900px){.admin-layout{grid-template-columns:1fr}.admin-sidebar{position:static;max-height:none}.admin-grid4{grid-template-columns:1fr 1fr}.admin-grid2{grid-template-columns:1fr}}
+.layers-list{display:flex;flex-direction:column;gap:6px}
+.layer-item{display:flex;align-items:center;gap:8px;padding:8px 10px;background:#fff;border:1px solid #e8e0c8;border-radius:10px;cursor:grab}
+.layer-item.dragging{opacity:0.5}
+.layer-item__icon{width:28px;height:28px;border-radius:6px;display:grid;place-items:center;font-size:13px;background:#f5f5f7;border:1px solid #e8e0c8}
+.layer-item__name{flex:1;font-size:13px;font-weight:700}
+.layer-item__type{font-size:11px;color:#8B93A7}
+.layer-item__actions{display:flex;gap:4px}
+.layer-item--photo .layer-item__icon{background:#e6f0ff;color:#5E3BFF}
+.layer-item--frame .layer-item__icon{background:#fff0e0;color:#FF8A00}
+.layer-item--text .layer-item__icon{background:#fff5f5;color:#FF2D7A}
+.layer-item--sticker .layer-item__icon{background:#f0ffe6;color:#2d8a4e}

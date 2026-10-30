@@ -18,6 +18,7 @@ const Editor = (() => {
   let userImage = null;
   let frameImage = null;
   let textObjects = {};        // key -> fabric.Text
+  let stickerObjects = {};     // id -> fabric.Image
   let fieldState = {};         // key -> { text, fontSize, color }
   let currentStep = 1;
   let frameConfig = null;
@@ -173,14 +174,14 @@ const Editor = (() => {
         selectable: true,
         hasControls: true,
         hasBorders: true,
-        borderColor: '#FBAE42',
-        cornerColor: '#014976',
+        borderColor: '#5E3BFF',
+        cornerColor: '#FF8A00',
         cornerSize: 10,
-        transparentCorners: false
+        transparentCorners: false,
+        _layerId: 'photo'
       });
 
       canvas.add(img);
-      canvas.sendToBack(img);
       restack();
       canvas.renderAll();
       updateZoom(100);
@@ -227,7 +228,19 @@ const Editor = (() => {
         hasBorders: false
       });
 
+      img._layerId='frame';
       canvas.add(img);
+      // clear old stickers
+      Object.values(stickerObjects).forEach(o=> canvas.remove(o)); stickerObjects={};
+      // load stickers if any
+      if(frameConfig.stickers && frameConfig.stickers.length){
+        frameConfig.stickers.forEach(st=>{
+          fabric.Image.fromURL(st.image, sim=>{
+            sim.set({ left: st.x, top: st.y, scaleX: st.w / sim.width, scaleY: st.h / sim.height, selectable:true, hasControls:true, hasBorders:true, borderColor:'#5E3BFF', cornerColor:'#FF8A00', _layerId: st.id });
+            stickerObjects[st.id]=sim; canvas.add(sim); restack(); canvas.renderAll(); renderLayersPanel();
+          });
+        });
+      }
       restack();
 
       if (el.canvasEmpty) el.canvasEmpty.style.display = 'none';
@@ -238,6 +251,7 @@ const Editor = (() => {
       fitCanvas();
       createTexts(frameConfig);
       buildForm(frameConfig);
+      renderLayersPanel();
 
       if (userImage) repositionImage();
     });
@@ -259,10 +273,21 @@ const Editor = (() => {
     canvas.renderAll();
   }
 
+  function getLayerOrder(){
+    if(frameConfig && Array.isArray(frameConfig.layerOrder) && frameConfig.layerOrder.length) return frameConfig.layerOrder;
+    const keys = Object.keys(frameConfig?.text||{});
+    return ['photo','frame', ...keys, ...Object.keys(frameConfig?.stickers||[]).map((_,i)=> frameConfig.stickers[i].id)];
+  }
   function restack() {
-    if (userImage) canvas.sendToBack(userImage);
-    if (frameImage) canvas.bringToFront(frameImage);
-    Object.values(textObjects).forEach(t => { if (t) canvas.bringToFront(t); });
+    const order = getLayerOrder();
+    // map id -> object
+    const map = { photo: userImage, frame: frameImage };
+    Object.entries(textObjects).forEach(([k,v])=> map[k]=v);
+    Object.entries(stickerObjects).forEach(([k,v])=> map[k]=v);
+    // send in order bottom->top: bringToFront sequentially
+    order.forEach(id=>{ const obj = map[id]; if(obj && canvas.contains(obj)) canvas.bringToFront(obj); });
+    // for any objects not in order (e.g., newly added), bring them front
+    Object.values(map).forEach(obj=>{ if(obj && canvas.contains(obj) && !order.includes(obj._layerId)) canvas.bringToFront(obj); });
   }
 
   /* ===== FIELD HELPERS ===== */
@@ -322,8 +347,8 @@ const Editor = (() => {
       });
 
       textObjects[key] = t;
+      t._layerId = key;
       canvas.add(t);
-      canvas.bringToFront(t);
     });
     canvas.renderAll();
   }
@@ -517,6 +542,54 @@ const Editor = (() => {
         if (s <= currentStep || b.classList.contains('done')) goToStep(s);
       });
     });
+  }
+
+  /* ===== LAYERS PANEL ===== */
+  function renderLayersPanel(){
+    if(!frameConfig) return;
+    let panel = document.getElementById('layersPanel');
+    if(!panel){
+      const area = document.getElementById('canvasArea');
+      panel = document.createElement('div');
+      panel.id='layersPanel';
+      panel.style.cssText='position:absolute;top:12px;left:12px;background:rgba(13,16,32,0.92);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.15);border-radius:12px;padding:10px;min-width:170px;z-index:30;max-height:70%;overflow:auto';
+      panel.innerHTML='<div style="color:#fff;font-size:12px;font-weight:800;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center"><span>🎚️ الطبقات</span><button id="layersToggle" style="background:none;border:none;color:#8B93A7;cursor:pointer">—</button></div><div id="layersListEd"></div><small style="color:#8B93A7;font-size:10px">الأعلى = في المقدمة — اسحب للترتيب</small>';
+      area.style.position='relative';
+      area.appendChild(panel);
+      panel.querySelector('#layersToggle').addEventListener('click',()=>{ const l=panel.querySelector('#layersListEd'); l.style.display=l.style.display==='none'?'':'none'; });
+    }
+    const list=panel.querySelector('#layersListEd');
+    const order=getLayerOrder();
+    list.innerHTML='';
+    // show from top to bottom for intuitive editing
+    [...order].reverse().forEach((id,i)=>{
+      let label=id, icon='T';
+      if(id==='photo'){ label='الصورة'; icon='🖼'; }
+      else if(id==='frame'){ label='الفريم'; icon='🖼️'; }
+      else if(id.startsWith('sticker')){ const s=frameConfig.stickers?.find(x=>x.id===id); label=s? s.name : id; icon='⭐'; }
+      const row=document.createElement('div');
+      row.style.cssText='display:flex;align-items:center;gap:6px;padding:6px 8px;background:rgba(255,255,255,0.08);border-radius:8px;margin-bottom:4px;color:#fff;font-size:12px;cursor:grab';
+      row.draggable=true; row.dataset.id=id;
+      row.innerHTML=`<span>${icon}</span><span style="flex:1">${label}</span><span style="display:flex;gap:2px"><button data-up style="background:#fff;color:#0D1020;border:none;border-radius:4px;padding:2px 6px;cursor:pointer">↑</button><button data-down style="background:#fff;color:#0D1020;border:none;border-radius:4px;padding:2px 6px;cursor:pointer">↓</button></span>`;
+      list.appendChild(row);
+    });
+    // drag
+    let drag=null;
+    list.querySelectorAll('[draggable]').forEach(r=>{
+      r.addEventListener('dragstart',()=>{drag=r});
+      r.addEventListener('dragover', e=>{ e.preventDefault(); if(drag && drag!==r){ const idx=[...list.children].indexOf(r), idxD=[...list.children].indexOf(drag); if(idx>idxD) r.after(drag); else r.before(drag); }});
+      r.addEventListener('dragend', async ()=>{ await applyLayerReorder(); });
+      r.querySelector('[data-up]').addEventListener('click', async ()=>{ const prev=r.previousElementSibling; if(prev) prev.before(r); await applyLayerReorder(); });
+      r.querySelector('[data-down]').addEventListener('click', async ()=>{ const nxt=r.nextElementSibling; if(nxt) nxt.after(r); await applyLayerReorder(); });
+    });
+  }
+  async function applyLayerReorder(){
+    const list=document.getElementById('layersListEd'); if(!list) return;
+    const topToBottom=[...list.children].map(x=>x.dataset.id);
+    const bottomToTop=[...topToBottom].reverse();
+    frameConfig.layerOrder=bottomToTop;
+    restack(); canvas.renderAll();
+    App.showToast('تم تحديث ترتيب الطبقات','info',2000);
   }
 
   function getCanvas() { return canvas; }
