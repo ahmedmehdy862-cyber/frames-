@@ -522,16 +522,40 @@ const Editor = (() => {
   function getCanvas() { return canvas; }
   function getFrameConfig() { return frameConfig; }
 
+  function getParam(name){ try{ return new URLSearchParams(location.search).get(name); }catch{ return null; } }
   async function init() {
     cache(); initCanvas(); initUpload();
     initZoom(); initNav();
     await FramesManager.loadFrames();
     initFrameSelector();
 
-    const frames = FramesManager.getAll();
-    if (frames && frames.length) {
-      frameConfig = frames[0];
+    const params = new URLSearchParams(location.search);
+    const requestedId = params.get('frame');
+    const requestedKey = params.get('key');
+    let initial = null;
+    if(requestedId){
+      const all = FramesManager.getAll();
+      // find with key check: private requires correct key
+      initial = all.find(f=> f.id===requestedId && (!f.visibility || f.visibility==='public' || f.accessKey===requestedKey));
+      if(!initial){
+        const exists = all.find(f=> f.id===requestedId);
+        if(exists && exists.visibility==='private'){
+          App.showToast('هذا الفريم خاص — تحتاج رابط الدعوة الصحيح','error',6000);
+        }
+      }
+    }
+    if(!initial){
+      const visible = FramesManager.getVisibleFrames ? FramesManager.getVisibleFrames() : FramesManager.getAll();
+      initial = visible[0] || FramesManager.getAll()[0];
+    }
+    if (initial) {
+      frameConfig = initial;
       loadFrame(frameConfig);
+      // highlight correct card after render
+      setTimeout(()=>{
+        const card = el.framesGrid.querySelector(`[data-frame-id="${initial.id}"]`);
+        if(card) card.classList.add('active');
+      },200);
     }
 
     goToStep(1);

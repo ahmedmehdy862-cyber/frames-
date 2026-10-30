@@ -72,6 +72,39 @@ const FramesManager = (() => {
     });
   }
 
+  function getUrlKey(){ try{ return new URLSearchParams(location.search).get('key'); }catch{ return null; } }
+  function getUrlFrameId(){ try{ return new URLSearchParams(location.search).get('frame'); }catch{ return null; } }
+  function isFrameAccessible(frame){
+    if(!frame.visibility || frame.visibility==='public') return true;
+    const key = getUrlKey();
+    // private frame: allow if key matches, or if admin override is present (admin preview)
+    if(frame.visibility==='private'){
+      if(key && frame.accessKey && key===frame.accessKey) return true;
+      // also allow when explicitly requested via admin (localStorage override lists it)
+      // but hide from public listing
+      return false;
+    }
+    return true;
+  }
+  function getVisibleFrames(){
+    const key = getUrlKey(); const fid = getUrlFrameId();
+    // if a specific private frame is requested with correct key, show only that frame
+    if(fid && key){
+      const matched = framesData.find(f=> f.id===fid && f.accessKey===key);
+      if(matched) return [matched];
+    }
+    // if fid without key and frame is private, don't show it in listings
+    return framesData.filter(isFrameAccessible);
+  }
+  function getFrameById(id){
+    return framesData.find(f=> f.id===id && isFrameAccessible(f)) || framesData.find(f=> f.id===id) || null;
+  }
+  function getPublishUrl(frame){
+    const base = location.href.replace(/\/[^\/]*$/, '').replace(/\/editor\.html.*$/,'').replace(/\/$/,'');
+    if(frame.visibility==='private' && frame.accessKey) return `${location.origin}${location.pathname.replace(/\/[^\/]*$/,'')}/editor.html?frame=${frame.id}&key=${frame.accessKey}`;
+    return `${location.origin}${location.pathname.replace(/\/[^\/]*$/,'')}/editor.html?frame=${frame.id}`;
+  }
+
   async function loadFrames() {
     try {
       const resp = await fetch('config/frames.json');
@@ -82,6 +115,13 @@ const FramesManager = (() => {
       console.warn('Could not load config/frames.json, using built-in frames:', e.message);
       framesData = BUILT_IN_FRAMES;
     }
+    // Admin local overrides (for preview before push)
+    try{
+      const stored = localStorage.getItem('fs_admin_frames');
+      if(stored){ const j=JSON.parse(stored); if(Array.isArray(j) && j.length) framesData = j; }
+    }catch(e){}
+    // Apply defaults for new fields
+    framesData = framesData.map(f=> ({ visibility:'public', accessKey: Math.random().toString(36).slice(2,9), ...f }));
     await applyEmbeddedData();
   }
 
@@ -97,11 +137,15 @@ const FramesManager = (() => {
     selectedFrame = frame;
   }
 
-  function renderFrameCards(container, onSelect) {
+  function renderFrameCards(container, onSelect, opts={}) {
     if (!container || !framesData.length) return;
     container.innerHTML = '';
-
-    framesData.forEach(frame => {
+    const list = opts.showAll ? framesData : getVisibleFrames();
+    if(!list.length){
+      container.innerHTML = '<p style="grid-column:1/-1;text-align:center;color:#7c7f90;padding:20px">لا توجد فريمات متاحة. إذا كان الفريم خاصًا افتح رابطه الخاص.</p>';
+      return;
+    }
+    list.forEach(frame => {
       const card = document.createElement('div');
       card.className = 'frame-card';
       card.dataset.frameId = frame.id;
@@ -148,7 +192,8 @@ const FramesManager = (() => {
   }
 
   function getAll() { return framesData; }
+  function getAllVisible() { return getVisibleFrames(); }
   function getSelectedFrame() { return selectedFrame; }
 
-  return { loadFrames, renderFrameCards, getAll, getSelectedFrame };
+  return { loadFrames, renderFrameCards, getAll, getAllVisible, getSelectedFrame, isFrameAccessible, getFrameById, getPublishUrl, getVisibleFrames };
 })();

@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>لوحة التحكم | Frame Studio</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/admin.css">
+</head>
+<body class="admin-body">
+  <!-- Login Overlay -->
+  <div id="loginOverlay" class="login-overlay">
+    <div class="login-card">
+      <div class="login-card__icon">🔐</div>
+      <h2>لوحة تحكم Frame Studio</h2>
+      <p>أدخل كلمة المرور للدخول</p>
+      <input type="password" id="loginPass" placeholder="كلمة المرور" class="input">
+      <button id="loginBtn" class="btn btn--amber btn--xl" style="width:100%;margin-top:12px">دخول</button>
+      <p class="login-hint">الافتراضية: <code>admin123</code> — يمكنك تغييرها من الإعدادات</p>
+      <p id="loginErr" style="color:#d4380d;margin-top:8px;display:none">كلمة المرور غير صحيحة</p>
+    </div>
+  </div>
+
+  <!-- Header -->
+  <header class="admin-header">
+    <div class="admin-header__inner">
+      <a href="index.html" class="logo" style="color:#fff">
+        <div class="logo__mark">FS</div> Frame Studio — الإدارة
+      </a>
+      <div class="admin-header__actions">
+        <a href="index.html" class="btn btn--ghost btn--sm">عرض الموقع</a>
+        <a href="editor.html" class="btn btn--ghost btn--sm">المحرر</a>
+        <button id="btnSettings" class="btn btn--ghost btn--sm">⚙️ الإعدادات</button>
+        <button id="btnLogout" class="btn btn--danger btn--sm">خروج</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="admin-layout">
+    <!-- Sidebar: Frames List -->
+    <aside class="admin-sidebar">
+      <div class="admin-sidebar__head">
+        <h3>الفريمات <span id="framesCount">0</span></h3>
+        <button id="btnNewFrame" class="btn btn--amber btn--sm">+ فريم جديد</button>
+      </div>
+      <div class="admin-sidebar__filters">
+        <button class="filter-btn active" data-filter="all">الكل</button>
+        <button class="filter-btn" data-filter="public">عامة</button>
+        <button class="filter-btn" data-filter="private">خاصة</button>
+      </div>
+      <div id="framesList" class="admin-frames-list"></div>
+      <div class="admin-sidebar__footer">
+        <button id="btnExport" class="btn btn--amber" style="width:100%">⬇ تحميل frames.json</button>
+        <button id="btnImport" class="btn btn--ghost" style="width:100%;margin-top:8px">⬆ استيراد JSON</button>
+        <input type="file" id="importFile" accept=".json" style="display:none">
+        <button id="btnBuildData" class="btn btn--ghost" style="width:100%;margin-top:8px">🔄 تحديث frames-data.js</button>
+        <p class="admin-hint">بعد التعديل حمّل الملف وضعه في <code>config/frames.json</code> ثم اعمل push</p>
+      </div>
+    </aside>
+
+    <!-- Main Editor -->
+    <main class="admin-main" id="adminMain">
+      <div id="emptyState" class="admin-empty">
+        <div class="admin-empty__icon">🎨</div>
+        <h3>اختر فريم للتعديل أو أنشئ واحد جديد</h3>
+        <p>يمكنك رفع صورة الفريم، تحديد مكان الصورة الشخصية، وضبط النصوص</p>
+      </div>
+
+      <form id="frameForm" class="admin-form" style="display:none">
+        <!-- Preview -->
+        <div class="admin-preview-card">
+          <h4>معاينة حية — اسحب العناصر لتغيير المكان</h4>
+          <div class="admin-canvas-wrap">
+            <canvas id="adminCanvas" width="500" height="500"></canvas>
+          </div>
+          <div class="admin-preview-legend">
+            <span><i style="background:rgba(251,174,66,0.4);border:1px dashed #FBAE42"></i> منطقة الصورة</span>
+            <span><i style="background:#FBAE42"></i> نصوص</span>
+          </div>
+        </div>
+
+        <!-- General -->
+        <div class="admin-card">
+          <h3 class="admin-card__title">البيانات الأساسية</h3>
+          <div class="admin-grid2">
+            <label>اسم الفريم
+              <input type="text" id="fName" class="input" placeholder="مثال: تكريم الذهب">
+            </label>
+            <label>المعرّف (id) — بدون مسافات
+              <input type="text" id="fId" class="input" placeholder="midnight-gold" dir="ltr">
+            </label>
+          </div>
+          <div class="admin-grid2">
+            <label>عرض الكانفاس
+              <input type="number" id="fW" class="input" value="2500">
+            </label>
+            <label>ارتفاع الكانفاس
+              <input type="number" id="fH" class="input" value="2500">
+            </label>
+          </div>
+          <label>صورة الفريم
+            <input type="file" id="fImageFile" accept="image/*" class="input">
+            <input type="text" id="fImage" class="input" placeholder="assets/frames/myframe.webp" dir="ltr" style="margin-top:6px">
+            <small>ارفع صورة أو ضع مسارها. الأفضل 2500×2500 PNG شفاف أو WEBP</small>
+          </label>
+          <div id="imagePreview" style="margin-top:10px;display:none"><img style="max-width:200px;border-radius:8px;border:1px solid #ddd"></div>
+
+          <div class="admin-grid4">
+            <label>Photo X <input type="number" id="pX" class="input"></label>
+            <label>Photo Y <input type="number" id="pY" class="input"></label>
+            <label>Photo W <input type="number" id="pW" class="input"></label>
+            <label>Photo H <input type="number" id="pH" class="input"></label>
+          </div>
+          <small>منطقة الصورة الشخصية داخل الفريم — يمكنك سحبها في المعاينة أعلاه</small>
+
+          <label>ألوان النصوص (مفصولة بفاصلة)
+            <input type="text" id="fColors" class="input" placeholder="#FFFFFF, #FBAE42, #C9A35C" dir="ltr">
+          </label>
+        </div>
+
+        <!-- Visibility -->
+        <div class="admin-card">
+          <h3 class="admin-card__title">النشر والخصوصية</h3>
+          <div class="visibility-row">
+            <label class="radio"><input type="radio" name="vis" value="public" checked> 🌍 عام — يظهر للجميع</label>
+            <label class="radio"><input type="radio" name="vis" value="private"> 🔒 خاص — برابط سري فقط</label>
+          </div>
+          <div id="privateBox" style="display:none;background:#fff8e6;border:1px solid #f0d9a0;border-radius:10px;padding:12px;margin-top:10px">
+            <label>مفتاح الوصول (Access Key)
+              <div style="display:flex;gap:8px">
+                <input type="text" id="fKey" class="input" dir="ltr" style="flex:1">
+                <button type="button" id="btnGenKey" class="btn btn--ghost btn--sm">توليد</button>
+              </div>
+            </label>
+            <div style="margin-top:10px">
+              <strong>رابط النشر الخاص:</strong>
+              <div id="privateLink" dir="ltr" style="background:#fff;border:1px dashed #c9a35c;padding:8px;border-radius:8px;margin-top:6px;word-break:break-all;font-size:13px"></div>
+              <button type="button" id="btnCopyPrivate" class="btn btn--sm btn--amber" style="margin-top:6px">نسخ الرابط</button>
+            </div>
+          </div>
+          <div id="publicLinkBox" style="margin-top:10px">
+            <strong>رابط النشر:</strong>
+            <div id="publicLink" dir="ltr" style="background:#f0f4f8;border:1px solid #d0d8e0;padding:8px;border-radius:8px;margin-top:6px;word-break:break-all;font-size:13px"></div>
+            <button type="button" id="btnCopyPublic" class="btn btn--sm btn--amber" style="margin-top:6px">نسخ الرابط</button>
+          </div>
+        </div>
+
+        <!-- Texts -->
+        <div class="admin-card">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <h3 class="admin-card__title">النصوص</h3>
+            <button type="button" id="btnAddText" class="btn btn--amber btn--sm">+ إضافة نص</button>
+          </div>
+          <div id="textsContainer"></div>
+        </div>
+
+        <div class="admin-form__actions">
+          <button type="submit" class="btn btn--amber btn--xl">💾 حفظ الفريم</button>
+          <button type="button" id="btnDuplicate" class="btn btn--ghost">نسخ</button>
+          <button type="button" id="btnDelete" class="btn btn--danger">حذف</button>
+          <button type="button" id="btnPreviewEditor" class="btn btn--ghost">معاينة في المحرر ↗</button>
+        </div>
+      </form>
+    </main>
+  </div>
+
+  <!-- Settings Modal -->
+  <div id="settingsModal" class="modal" style="display:none">
+    <div class="modal__card">
+      <h3>الإعدادات</h3>
+      <label>كلمة مرور الإدارة
+        <input type="password" id="setPass" class="input" placeholder="كلمة جديدة">
+      </label>
+      <label>تأكيد
+        <input type="password" id="setPass2" class="input" placeholder="تأكيد">
+      </label>
+      <div style="display:flex;gap:8px;margin-top:12px">
+        <button id="btnSavePass" class="btn btn--amber">حفظ</button>
+        <button id="btnCloseSettings" class="btn btn--ghost">إغلاق</button>
+      </div>
+      <hr style="margin:16px 0">
+      <button id="btnResetAll" class="btn btn--danger" style="width:100%">مسح كل التعديلات المحلية</button>
+      <small>يحذف frames من localStorage ويعود للأصل</small>
+    </div>
+  </div>
+
+  <div id="toastContainer" class="toast-container"></div>
+
+  <script src="js/app.js"></script>
+  <script src="js/frames.js"></script>
+  <script src="js/admin.js"></script>
+</body>
+</html>
