@@ -4,45 +4,62 @@
    Deep velvet + antique gold + parchment
    ================================================ */
 
-@import url('https://fonts.googleapis.com/css2?family=Almarai:wght@300;400;700;800&family=Aref+Ruqaa:wght@400;700&family=Cairo:wght@300;400;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@600;700;800;900&family=Poppins:wght@600;700;800;900&display=swap');
 
 :root {
-  /* === Color System — Royal Atelier === */
-  --ink: #0a101c;
-  --ink-soft: #101a2c;
-  --velvet: #0d1a30;
-  --velvet-deep: #081120;
-  --velvet-2: #12243f;
+  /* === FRAMEO Brand System — Extracted from Brand Guidelines === */
+  --bg: #0D1020;
+  --bg-soft: #11162e;
+  --surface: #151A2E;
+  --surface-2: #1A2040;
 
-  --navy: #014976;
-  --navy-mid: #0a6fa8;
-  --navy-rgb: 1, 73, 118;
+  --violet: #5E3BFF;
+  --violet-rgb: 94,59,255;
+  --pink: #FF2D7A;
+  --pink-rgb: 255,45,122;
+  --orange: #FF8A00;
+  --orange-rgb: 255,138,0;
+  --yellow: #FFD141;
+  --yellow-rgb: 255,209,65;
 
-  --gold: #c9a35c;
-  --gold-bright: #e9c97f;
-  --gold-deep: #a67f3d;
-  --gold-rgb: 201, 163, 92;
+  --light: #F5F5F7;
+  --light-rgb: 245,245,247;
+  --muted: #8B93A7;
 
-  --amber: #FBAE42;
-  --amber-bright: #ffc866;
-  --amber-rgb: 251, 174, 66;
+  --gradient: linear-gradient(135deg, #5E3BFF 0%, #FF2D7A 50%, #FF8A00 100%);
+  --gradient-2: linear-gradient(135deg, #FFD141 0%, #FF8A00 100%);
+  --gradient-text: linear-gradient(90deg, #5E3BFF, #FF2D7A, #FF8A00, #FFD141);
 
-  --parchment: #f3ecdc;
-  --parchment-2: #faf5e7;
-  --cream-cool: #f7f5ee;
+  /* legacy aliases for compatibility */
+  --ink: #0D1020;
+  --ink-soft: #11162e;
+  --velvet: #0D1020;
+  --velvet-deep: #080c1a;
+  --velvet-2: #151A2E;
+  --navy: #5E3BFF;
+  --navy-mid: #FF2D7A;
+  --navy-rgb: 94,59,255;
+  --gold: #FF8A00;
+  --gold-bright: #FFD141;
+  --gold-deep: #FF8A00;
+  --gold-rgb: 255,138,0;
+  --amber: #FF8A00;
+  --amber-bright: #FFD141;
+  --amber-rgb: 255,138,0;
+  --parchment: #F5F5F7;
+  --parchment-2: #FFFFFF;
+  --cream-cool: #F5F5F7;
+  --text-primary: #0D1020;
+  --text-body: #3a415c;
+  --text-muted: #8B93A7;
+  --text-inverse: #F5F5F7;
+  --danger: #FF2D7A;
+  --success: #5E3BFF;
 
-  --text-primary: #101826;
-  --text-body: #454a5c;
-  --text-muted: #7c7f90;
-  --text-inverse: #f4f0e4;
-
-  --danger: #d4380d;
-  --success: #2d8a6e;
-
-  /* === Typography === */
-  --font-display: 'Cairo', sans-serif;
-  --font-body: 'Almarai', sans-serif;
-  --font-ruqaa: 'Aref Ruqaa', serif;
+  /* === Typography — FRAMEO === */
+  --font-display: 'Poppins', 'Cairo', sans-serif;
+  --font-body: 'Cairo', sans-serif;
+  --font-ruqaa: 'Cairo', serif;
 
   /* === Spacing === */
   --sp-xs: 4px;
@@ -1077,8 +1094,8 @@ ul, ol { list-style: none; }
 
 ::-webkit-scrollbar { width: 7px; height: 7px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: rgba(201,163,92,0.4); border-radius: 4px; }
-::-webkit-scrollbar-thumb:hover { background: var(--gold); }
+::-webkit-scrollbar-thumb { background: linear-gradient(180deg, #5E3BFF, #FF2D7A); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--orange); }
 
 /* Empty / Error states */
 .empty-state,
@@ -1102,3 +1119,27 @@ ul, ol { list-style: none; }
   color: var(--text-muted);
   margin-bottom: 16px;
 }
+/* ===== FRAMEO BRAND OVERRIDES ===== */
+body{ background: var(--light); }
+.header{ background: rgba(13,16,32,0.92); backdrop-filter: blur(14px); border-bottom: 1px solid rgba(255,255,255,0.06); }
+.header.scrolled{ background: rgba(13,16,32,0.98); box-shadow: 0 4px 30px rgba(0,0,0,0.4); }
+.logo{ font-family: 'Poppins', sans-serif; font-weight: 900; letter-spacing: 0.04em; }
+.logo__mark{ background: var(--gradient); color: #fff; border-radius: 12px; width: 36px; height: 36px; display:grid; place-items:center; overflow:hidden; }
+.logo__mark img{ width:100%; height:100%; object-fit:cover; }
+.hero{ background: var(--bg); color: #fff; position:relative; overflow:hidden; }
+.hero::before{ content:''; position:absolute; inset:0; background: radial-gradient(800px 400px at 20% 10%, rgba(94,59,255,0.25), transparent), radial-gradient(600px 300px at 90% 20%, rgba(255,45,122,0.2), transparent), radial-gradient(700px 350px at 50% 100%, rgba(255,138,0,0.15), transparent); pointer-events:none; }
+.hero__title-accent{ background: var(--gradient); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+.hero__tag{ background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12); color: #fff; backdrop-filter: blur(8px); }
+.btn--amber{ background: var(--gradient); color:#fff; border:none; box-shadow: 0 8px 24px rgba(94,59,255,0.35); }
+.btn--amber:hover{ transform: translateY(-2px); box-shadow: 0 12px 32px rgba(94,59,255,0.45); filter: brightness(1.05); }
+.btn--ghost{ background: transparent; color:#fff; border:1px solid rgba(255,255,255,0.18); }
+.btn--ghost:hover{ background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.3); color:#fff; }
+.marquee{ background: var(--bg); border-top:1px solid rgba(255,255,255,0.06); border-bottom:1px solid rgba(255,255,255,0.06); color: var(--muted); }
+.feature-card{ background:#fff; border:1px solid rgba(13,16,32,0.06); box-shadow: 0 8px 30px rgba(13,16,32,0.06); border-top: 3px solid transparent; transition: 0.25s; }
+.feature-card:hover{ transform: translateY(-4px); border-top-color: var(--violet); box-shadow: 0 16px 40px rgba(13,16,32,0.12); }
+.feature-card__icon--navy{ background: rgba(94,59,255,0.1); color: var(--violet); }
+.feature-card__icon--amber{ background: linear-gradient(135deg, rgba(255,138,0,0.15), rgba(255,209,65,0.2)); color: var(--orange); }
+.section__overline{ color: var(--violet); font-family:'Poppins',sans-serif; letter-spacing:0.12em; }
+.khatam-pattern{ opacity:0.03; }
+.footer{ background: var(--bg); color: rgba(255,255,255,0.7); border-top:1px solid rgba(255,255,255,0.06); }
+.admin-body .header{ display:none; }

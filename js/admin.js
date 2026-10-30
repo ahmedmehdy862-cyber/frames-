@@ -1,17 +1,27 @@
 'use strict';
 (() => {
   const LS_KEY = 'fs_admin_frames';
-  const PASS_KEY = 'fs_admin_pass';
+  const PASS_KEY = 'fs_admin_pass_hash';
   const SESSION_KEY = 'fs_admin_session';
+  const ATTEMPT_KEY = 'fs_admin_attempts';
+  const LOCK_KEY = 'fs_admin_lock';
   let frames = [];
   let current = null;
   let filter = 'all';
-  let dragTarget = null; // 'photo' or textKey
+  let dragTarget = null;
   let dragOffset = {x:0,y:0};
   let imgCache = {};
 
-  function defaultPass(){ return localStorage.getItem(PASS_KEY) || 'admin123'; }
-  function isLogged(){ return sessionStorage.getItem(SESSION_KEY)==='1'; }
+  async function sha256(s){ const b=new TextEncoder().encode(s); const h=await crypto.subtle.digest('SHA-256', b); return [...new Uint8Array(h)].map(x=>x.toString(16).padStart(2,'0')).join(''); }
+  const DEFAULT_HASH = '240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9'; // admin123
+  async function getStoredHash(){ return localStorage.getItem(PASS_KEY) || DEFAULT_HASH; }
+  function isLocked(){ const until= +localStorage.getItem(LOCK_KEY)||0; return Date.now()<until; }
+  function recordFail(){ let n=(+localStorage.getItem(ATTEMPT_KEY)||0)+1; localStorage.setItem(ATTEMPT_KEY, n); if(n>=5){ localStorage.setItem(LOCK_KEY, Date.now()+5*60*1000); localStorage.setItem(ATTEMPT_KEY,0); return true; } return false; }
+  function clearAttempts(){ localStorage.removeItem(ATTEMPT_KEY); localStorage.removeItem(LOCK_KEY); }
+  function isLogged(){ const s=sessionStorage.getItem(SESSION_KEY); if(!s) return false; const exp=+sessionStorage.getItem(SESSION_KEY+'_exp')||0; if(Date.now()>exp){ sessionStorage.removeItem(SESSION_KEY); sessionStorage.removeItem(SESSION_KEY+'_exp'); return false; } return s==='1'; }
+  function setSession(){ sessionStorage.setItem(SESSION_KEY,'1'); sessionStorage.setItem(SESSION_KEY+'_exp', Date.now()+15*60*1000); }
+  // auto extend on activity
+  setInterval(()=>{ if(isLogged()) sessionStorage.setItem(SESSION_KEY+'_exp', Date.now()+15*60*1000); }, 60*1000);
 
   // Load frames: merge config + localStorage override
   async function loadFrames(){
@@ -380,22 +390,26 @@
     // settings
     $('btnSettings').addEventListener('click',()=> $('settingsModal').style.display='flex');
     $('btnCloseSettings').addEventListener('click',()=> $('settingsModal').style.display='none');
-    $('btnSavePass').addEventListener('click',()=>{
+    $('btnSavePass').addEventListener('click', async ()=>{
       const p=$('setPass').value, p2=$('setPass2').value;
       if(!p || p!==p2){ App.showToast('كلمات المرور غير متطابقة','error'); return; }
-      localStorage.setItem(PASS_KEY,p); App.showToast('تم حفظ كلمة المرور','success'); $('settingsModal').style.display='none';
+      if(p.length<6){ App.showToast('كلمة المرور قصيرة جداً (6 أحرف على الأقل)','error'); return; }
+      const h=await sha256(p); localStorage.setItem(PASS_KEY,h); App.showToast('تم حفظ كلمة المرور','success'); $('settingsModal').style.display='none';
+      $('setPass').value=''; $('setPass2').value='';
     });
     $('btnResetAll').addEventListener('click',()=>{
       if(!confirm('مسح كل التعديلات المحلية والعودة للأصل؟')) return;
       localStorage.removeItem(LS_KEY); location.reload();
     });
     $('btnLogout').addEventListener('click',()=>{ sessionStorage.removeItem(SESSION_KEY); location.reload(); });
-    // login
+    // login with hashing + brute force protection
     $('loginBtn').addEventListener('click', tryLogin);
     $('loginPass').addEventListener('keydown', e=>{ if(e.key==='Enter') tryLogin(); });
-    function tryLogin(){
-      if($('loginPass').value===defaultPass()){ sessionStorage.setItem(SESSION_KEY,'1'); $('loginOverlay').style.display='none'; initApp(); }
-      else $('loginErr').style.display='';
+    async function tryLogin(){
+      if(isLocked()){ const until=+localStorage.getItem(LOCK_KEY); const sec=Math.ceil((until-Date.now())/1000); App.showToast(`محظور مؤقتاً - حاول بعد ${sec} ثانية`,'error',5000); return; }
+      const input=$('loginPass').value; const h=await sha256(input); const stored=await getStoredHash();
+      if(h===stored){ clearAttempts(); setSession(); $('loginOverlay').style.display='none'; $('loginErr').style.display='none'; initApp(); }
+      else { $('loginErr').style.display=''; $('loginErr').textContent='كلمة المرور غير صحيحة'; if(recordFail()) App.showToast('تم الحظر 5 دقائق بسبب محاولات كثيرة','error',6000); }
     }
     if(isLogged()) $('loginOverlay').style.display='none';
   }
