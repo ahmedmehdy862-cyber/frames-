@@ -1,0 +1,74 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="2500" height="2500" viewBox="0 0 2500 2500">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="30%" r="88%">
+      <stop offset="0%" stop-color="#16304f"/>
+      <stop offset="52%" stop-color="#0d1a30"/>
+      <stop offset="100%" stop-color="#070f1c"/>
+    </radialGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#E9C97F"/>
+      <stop offset="45%" stop-color="#C9A35C"/>
+      <stop offset="100%" stop-color="#8A6A2F"/>
+    </linearGradient>
+    <linearGradient id="goldSoft" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#C9A35C" stop-opacity="0"/>
+      <stop offset="50%" stop-color="#E9C97F"/>
+      <stop offset="100%" stop-color="#C9A35C" stop-opacity="0"/>
+    </linearGradient>
+    <mask id="photoHole">
+      <rect width="2500" height="2500" fill="#ffffff"/>
+      <rect x="550" y="300" width="1400" height="1400" rx="30" fill="#000000"/>
+    </mask>
+  </defs>
+
+  <!-- Everything below is cut away inside the photo window -->
+  <g mask="url(#photoHole)">
+    <rect width="2500" height="2500" fill="url(#bg)"/>
+    <circle cx="1250" cy="1760" r="640" fill="#C9A35C" opacity="0.05"/>
+    <circle cx="1250" cy="1760" r="420" fill="#FBAE42" opacity="0.04"/>
+
+    <!-- Outer engraved border -->
+    <rect x="64" y="64" width="2372" height="2372" rx="18" fill="none" stroke="url(#gold)" stroke-width="8"/>
+    <rect x="92" y="92" width="2316" height="2316" rx="12" fill="none" stroke="#C9A35C" stroke-opacity="0.45" stroke-width="2"/>
+
+    <!-- Corner diamonds on the outer border -->
+    <g fill="#FBAE42">
+      <path d="M64 64 l26 0 -26 26 z"/>
+      <path d="M2436 64 l-26 0 26 26 z"/>
+      <path d="M64 2436 l26 0 -26 -26 z"/>
+      <path d="M2436 2436 l-26 0 26 -26 z"/>
+    </g>
+
+    <!-- Top ornament -->
+    <g fill="none" stroke="url(#gold)">
+      <path d="M1090 212 H1180" stroke-width="4" stroke-linecap="round"/>
+      <path d="M1320 212 H1410" stroke-width="4" stroke-linecap="round"/>
+      <circle cx="1250" cy="212" r="38" stroke-width="2" opacity="0.55"/>
+    </g>
+    <path d="M1250 180 l18 32 -18 32 -18 -32 z" fill="url(#gold)"/>
+
+    <!-- Divider under the photo window -->
+    <path d="M930 1782 H1570" stroke="url(#goldSoft)" stroke-width="3"/>
+    <path d="M1180 1782 H1320" stroke="#C9A35C" stroke-width="5"/>
+    <path d="M1250 1756 l20 26 -20 26 -20 -26 z" fill="#FBAE42"/>
+
+    <!-- Corner brackets around the photo window -->
+    <g fill="none" stroke="url(#gold)" stroke-width="6" stroke-linecap="round" opacity="0.95">
+      <path d="M506 430 V 256 H 680"/>
+      <path d="M1994 430 V 256 H 1820"/>
+      <path d="M506 1570 V 1744 H 680"/>
+      <path d="M1994 1570 V 1744 H 1820"/>
+    </g>
+
+    <!-- Bottom medallion -->
+    <g fill="none" stroke="#C9A35C">
+      <circle cx="1250" cy="2320" r="48" stroke-width="3" opacity="0.75"/>
+      <circle cx="1250" cy="2320" r="32" stroke-width="1.5" opacity="0.55"/>
+    </g>
+    <path d="M1250 2286 l16 34 -16 34 -16 -34 z" fill="url(#gold)"/>
+  </g>
+
+  <!-- Photo window frame (drawn on top of the hole) -->
+  <rect x="550" y="300" width="1400" height="1400" rx="30" fill="none" stroke="url(#gold)" stroke-width="10"/>
+  <rect x="574" y="324" width="1352" height="1352" rx="18" fill="none" stroke="#FBAE42" stroke-opacity="0.45" stroke-width="2"/>
+</svg>

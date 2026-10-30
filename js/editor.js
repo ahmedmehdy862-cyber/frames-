@@ -37,6 +37,20 @@ const Editor = (() => {
     ].forEach(id => { el[id] = document.getElementById(id); });
   }
 
+  /* ===== FRAME CONFIG GUARDS ===== */
+  // A frame config is user-editable JSON; fill in sane defaults so a missing
+  // or malformed key can never crash the editor.
+  function normalizeFrame(frame) {
+    if (!frame) return frame;
+    frame.canvasWidth = Number(frame.canvasWidth) || 1080;
+    frame.canvasHeight = Number(frame.canvasHeight) || 1080;
+    frame.photoArea = frame.photoArea || {
+      x: 0, y: 0, width: frame.canvasWidth, height: frame.canvasHeight
+    };
+    frame.text = frame.text || {};
+    return frame;
+  }
+
   /* ===== CANVAS ===== */
   function initCanvas() {
     canvas = new fabric.Canvas('editorCanvas', {
@@ -46,6 +60,21 @@ const Editor = (() => {
     });
     fitCanvas();
     window.addEventListener('resize', fitCanvas);
+  }
+
+  function showFabricError() {
+    if (el.canvasEmpty) {
+      el.canvasEmpty.style.display = '';
+      el.canvasEmpty.innerHTML =
+        '<div class="canvas-empty__icon">' +
+          '<svg width="40" height="40" viewBox="0 0 40 40" fill="none"><circle cx="20" cy="20" r="15" stroke="currentColor" stroke-width="1.5"/><path d="M20 12v9M20 26v1" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>' +
+        '</div>' +
+        '<h3>تعذّر تحميل المحرر</h3>' +
+        '<p>تأكد من اتصالك بالإنترنت ثم أعد تحميل الصفحة</p>';
+    }
+    if (el.canvasContainer) el.canvasContainer.style.display = 'none';
+    if (el.canvasControls) el.canvasControls.style.display = 'none';
+    App.showToast('تعذّر تحميل مكتبة المحرر (Fabric.js)', 'error', 6000);
   }
 
   function fitCanvas() {

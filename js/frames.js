@@ -1,7 +1,8 @@
 /* ========================================
-   FRAME STUDIO — Frame System (V2)
-   Loads frames from local frames.json,
+   FRAME STUDIO — Frame System (V3)
+   Loads frames from config/frames.json,
    falls back to built-in data for file://
+   or when the config cannot be fetched.
    ======================================== */
 
 'use strict';
@@ -12,21 +13,9 @@ const FramesManager = (() => {
 
   const BUILT_IN_FRAMES = [
     {
-      id: 'frame2',
-      name: '\u0645\u0634\u0627\u0631\u0643\u0629 \u0641\u064A \u0643\u0627\u0645\u0628 \u062C\u0630\u0648\u0631',
-      image: 'assets/frames/frame2.png',
-      canvasWidth: 2048,
-      canvasHeight: 2048,
-      photoArea: { x: 636, y: 408, width: 776, height: 824 },
-      textColors: ['#014976', '#FFFFFF'],
-      text: {
-        name: { x: 1024, y: 1280, fontSize: 60, fontWeight: 'bold', color: '#FFFFFF', align: 'center', letterSpacing: 0 }
-      }
-    },
-    {
       id: 'codemakers',
       name: 'The Code Makers Journey',
-      image: 'assets/frames/codemakers.png',
+      image: 'assets/frames/codemakers.webp',
       canvasWidth: 2500,
       canvasHeight: 2500,
       photoArea: { x: 877, y: 881, width: 748, height: 748 },
@@ -34,7 +23,21 @@ const FramesManager = (() => {
       text: {
         name: { x: 1250, y: 1873, fontSize: 72, fontWeight: 'bold', color: '#FFFFFF', align: 'center', label: '\u0627\u0644\u0627\u0633\u0645', placeholder: '\u0623\u062F\u062E\u0644 \u0627\u0633\u0645\u0643' },
         role: { x: 1250, y: 2036, fontSize: 52, fontWeight: 'bold', color: '#FFFFFF', align: 'center', label: '\u0627\u0644\u0639\u0636\u0648\u064A\u0629', value: 'Code Makers member' },
-        track: { x: 1250, y: 2200, fontSize: 50, fontWeight: 'bold', color: '#FFFFFF', align: 'center', label: '\u0627\u0644\u062A\u0631\u0627\u0643', options: ['Data analysis-Season1', 'UI/UX-Season1', 'Backend-Season'] }
+        track: { x: 1250, y: 2200, fontSize: 50, fontWeight: 'bold', color: '#FFFFFF', align: 'center', label: '\u0627\u0644\u062A\u0631\u0627\u0643', options: ['Data analysis-Season1', 'UI/UX-Season1', 'Backend-Season1'] }
+      }
+    },
+    {
+      id: 'midnight-gold',
+      name: 'Midnight Gold \u2014 \u0634\u0647\u0627\u062F\u0629 \u0623\u0646\u064A\u0642\u0629',
+      image: 'assets/frames/midnight-gold.webp',
+      canvasWidth: 2500,
+      canvasHeight: 2500,
+      photoArea: { x: 550, y: 300, width: 1400, height: 1400 },
+      textColors: ['#F3ECDC', '#FBAE42', '#C9A35C'],
+      text: {
+        name: { x: 1250, y: 1890, fontSize: 96, fontWeight: 'bold', color: '#F3ECDC', align: 'center', label: '\u0627\u0644\u0627\u0633\u0645', placeholder: '\u0623\u062F\u062E\u0644 \u0627\u0644\u0627\u0633\u0645' },
+        role: { x: 1250, y: 2020, fontSize: 56, fontWeight: 'bold', color: '#FBAE42', align: 'center', label: '\u0627\u0644\u0645\u0633\u0645\u0649 \u0623\u0648 \u0627\u0644\u0639\u0636\u0648\u064A\u0629', placeholder: '\u0623\u062F\u062E\u0644 \u0627\u0644\u0645\u0633\u0645\u0649' },
+        note: { x: 1250, y: 2160, fontSize: 46, fontWeight: 'normal', color: '#F3ECDC', align: 'center', label: '\u0643\u0644\u0645\u0629 \u0627\u0644\u0634\u0643\u0631', placeholder: '\u0634\u0643\u0631\u0627\u064B \u0648\u062A\u0642\u062F\u064A\u0631\u0627\u064B' }
       }
     }
   ];
@@ -82,6 +85,18 @@ const FramesManager = (() => {
     await applyEmbeddedData();
   }
 
+  function selectFrame(container, card, frame) {
+    if (container) {
+      container.querySelectorAll('.frame-card').forEach(c => {
+        c.classList.remove('active');
+        c.setAttribute('aria-pressed', 'false');
+      });
+    }
+    card.classList.add('active');
+    card.setAttribute('aria-pressed', 'true');
+    selectedFrame = frame;
+  }
+
   function renderFrameCards(container, onSelect) {
     if (!container || !framesData.length) return;
     container.innerHTML = '';
@@ -92,32 +107,44 @@ const FramesManager = (() => {
       card.dataset.frameId = frame.id;
       card.setAttribute('role', 'button');
       card.setAttribute('tabindex', '0');
-      card.setAttribute('aria-label', '\u0627\u062E\u062A\u0631 ' + frame.name);
+      card.setAttribute('aria-pressed', 'false');
+      card.setAttribute('aria-label', 'اختر ' + frame.name);
 
-      const imgSrc = frame.dataUrl || frame.image;
+      const imgWrap = document.createElement('div');
+      imgWrap.className = 'frame-card__img';
 
-      card.innerHTML =
-        '<div class="frame-card__img">' +
-          '<img src="' + imgSrc + '" alt="' + frame.name + '" loading="lazy">' +
-        '</div>' +
-        '<div class="frame-card__label">' + frame.name + '</div>';
+      const img = document.createElement('img');
+      img.src = frame.dataUrl || frame.image;
+      img.alt = frame.name;
+      img.loading = 'lazy';
+      imgWrap.appendChild(img);
 
-      card.addEventListener('click', () => {
-        container.querySelectorAll('.frame-card').forEach(c => c.classList.remove('active'));
-        card.classList.add('active');
+      const label = document.createElement('div');
+      label.className = 'frame-card__label';
+      label.textContent = frame.name;
+
+      card.appendChild(imgWrap);
+      card.appendChild(label);
+
+      const choose = () => {
+        selectFrame(container, card, frame);
         if (onSelect) onSelect(frame);
-      });
+      };
+
+      card.addEventListener('click', choose);
       card.addEventListener('keydown', e => {
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault();
-          container.querySelectorAll('.frame-card').forEach(c => c.classList.remove('active'));
-          card.classList.add('active');
-          if (onSelect) onSelect(frame);
+          choose();
         }
       });
 
       container.appendChild(card);
     });
+
+    // Keep the first frame highlighted when the editor boots with it selected.
+    const first = container.querySelector('.frame-card');
+    if (first) selectFrame(container, first, framesData[0]);
   }
 
   function getAll() { return framesData; }
