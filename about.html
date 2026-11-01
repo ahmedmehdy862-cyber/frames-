@@ -3,24 +3,21 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="FRAMEO - حول البراند | إطارك بطريقتك">
+  <script>document.documentElement.classList.add('js');</script>
   <title>حول | FRAMEO</title>
-  <link rel="stylesheet" href="css/style.css">
-  <link rel="stylesheet" href="css/responsive.css">
+  <meta name="description" content="FRAMEO — أداة مجانية لإنشاء صور احترافية باستخدام فريمات مخصصة، بخصوصية كاملة على جهازك.">
+  <meta name="theme-color" content="#0a0d1c">
+  <link rel="icon" type="image/png" sizes="48x48" href="assets/brand/favicon-48.png">
+  <link rel="apple-touch-icon" href="assets/brand/apple-touch-icon.png">
+  <link rel="stylesheet" href="css/frameo.css">
 </head>
-<body>
+<body class="fx">
   <header class="header" id="header">
     <div class="container header__inner">
-      <a href="index.html" class="logo" aria-label="Frame Studio">
-        <div class="logo__mark">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" class="star-8">
-            <path d="M12 1l2.6 6.4L21 10l-6.4 2.6L12 19l-2.6-6.4L3 10l6.4-2.6z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" fill="currentColor" opacity="0.35"/>
-            <path d="M12 4.5l1.7 4.3 4.3 1.7-4.3 1.7L12 16.7l-1.7-4.5-4.3-1.7 4.3-1.7z" fill="currentColor"/>
-          </svg>
-        </div>
-        Frame Studio
+      <a href="index.html" class="logo" aria-label="FRAMEO — الرئيسية">
+        <span class="logo__mark" aria-hidden="true"></span><span class="logo__word" aria-hidden="true"></span>
       </a>
-      <nav class="nav" id="mainNav">
+      <nav class="nav" id="mainNav" aria-label="القائمة الرئيسية">
         <ul class="nav__list">
           <li><a href="index.html" class="nav__link">الرئيسية</a></li>
           <li><a href="editor.html" class="nav__link">إنشاء التصميم</a></li>
@@ -28,96 +25,79 @@
           <li><a href="about.html" class="nav__link active">حول</a></li>
         </ul>
       </nav>
-      <button class="menu-btn" id="menuBtn" aria-label="القائمة" aria-expanded="false">
+      <button class="menu-btn" id="menuBtn" aria-label="القائمة" aria-expanded="false" aria-controls="mainNav">
         <span></span><span></span><span></span>
       </button>
     </div>
   </header>
 
-  <main class="about-page">
+  <main class="fx-page">
+    <div class="fx-bg" aria-hidden="true">
+      <i class="fx-blob fx-blob--1"></i><i class="fx-blob fx-blob--3"></i>
+    </div>
     <div class="container">
-      <div class="about-hero">
-        <div class="section__overline">حول المشروع</div>
-        <h1 class="section__title" style="text-align:center;margin:0 auto;">Frame Studio</h1>
-        <p class="about-hero__desc">
-          أداة مجانية بالكامل لإنشاء صور احترافية باستخدام فريمات مخصصة.
-          صُمّمت لتكون بسيطة وسريعة وأمنة — دون برامج مقدّرة أو رفع صورك لأي خادم.
+      <div class="fx-about-hero">
+        <div class="fx-lockup" role="img" aria-label="FRAMEO"><span class="fx-lockup__mark"></span><span class="fx-lockup__word"></span></div>
+        <div class="fx-over reveal" style="justify-content:center">حول المشروع</div>
+        <h1 class="reveal" style="font-size:clamp(1.9rem,4vw,3rem)">إطارك.. <span class="fx-grad-text">بطريقتك</span></h1>
+        <p class="reveal" style="--d:.1s">
+          FRAMEO أداة مجانية بالكامل لإنشاء صور احترافية باستخدام فريمات مخصصة.
+          صُمّمت لتكون بسيطة وسريعة وآمنة — دون برامج معقدة، ودون رفع صورك لأي خادم.
         </p>
       </div>
-      <div class="about-grid">
-        <div class="about-card">
-          <div class="about-card__icon">
-            <svg width="28" height="28" viewBox="0 0 28 28" fill="none"><path d="M14 25c5.52 0 10-4.48 10-10S19.52 5 14 5 4 9.48 4 14s4.48 10 10 10z" stroke="currentColor" stroke-width="1.8"/><path d="M10 14l3 3 5-5.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          </div>
+
+      <div class="fx-cards fx-cards--4">
+        <div class="fx-card reveal" style="--d:0s">
+          <div class="fx-card__icon"><svg width="26" height="26" viewBox="0 0 28 28" fill="none" aria-hidden="true"><path d="M14 25c5.52 0 10-4.48 10-10S19.52 5 14 5 4 9.48 4 14s4.48 10 10 10z" stroke="currentColor" stroke-width="1.8"/><path d="M10 14l3 3 5-5.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
           <h3>خصوصية تامة</h3>
           <p>جميع المعالجات تحدث داخل المتصفح. صورتك لا تُرفع لأي خادم في أي مرحلة.</p>
         </div>
-        <div class="about-card">
-          <div class="about-card__icon" style="background:rgba(251,174,66,0.1);color:var(--gold-deep);">
-            <svg width="28" height="28" viewBox="0 0 28 28" fill="none"><path d="M14 24c5.52 0 10-4.48 10-10S19.52 4 14 4 4 8.48 4 14s4.48 10 10 10z" stroke="currentColor" stroke-width="1.8"/><path d="M14 8v8M10 12h8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
-          </div>
+        <div class="fx-card reveal" style="--d:.08s">
+          <div class="fx-card__icon"><svg width="26" height="26" viewBox="0 0 28 28" fill="none" aria-hidden="true"><path d="M14 24c5.52 0 10-4.48 10-10S19.52 4 14 4 4 8.48 4 14s4.48 10 10 10z" stroke="currentColor" stroke-width="1.8"/><path d="M14 8v8M10 12h8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></div>
           <h3>مجاني بالكامل</h3>
-          <p>لا اشتراكات، لا حدود، لا عناصر مخفية. استخدم الأداة كما تشاء.</p>
+          <p>لا اشتراكات ولا حدود ولا عناصر مخفية. استخدم الأداة كما تشاء.</p>
         </div>
-        <div class="about-card">
-          <div class="about-card__icon">
-            <svg width="28" height="28" viewBox="0 0 28 28" fill="none"><rect x="4" y="6" width="20" height="16" rx="3" stroke="currentColor" stroke-width="1.8"/><path d="M10 13l4 4 4-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          </div>
+        <div class="fx-card reveal" style="--d:.16s">
+          <div class="fx-card__icon"><svg width="26" height="26" viewBox="0 0 28 28" fill="none" aria-hidden="true"><rect x="4" y="6" width="20" height="16" rx="3" stroke="currentColor" stroke-width="1.8"/><path d="M10 13l4 4 4-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
           <h3>سهل الاستخدام</h3>
-          <p>واجهة بسيطة وواضحة. أربع خطوات فورية للحصول على تصميمك الاحترافي.</p>
+          <p>واجهة بسيطة وواضحة. أربع خطوات سريعة للحصول على تصميمك الاحترافي.</p>
         </div>
-        <div class="about-card">
-          <div class="about-card__icon" style="background:rgba(251,174,66,0.1);color:var(--gold-deep);">
-            <svg width="28" height="28" viewBox="0 0 28 28" fill="none"><rect x="7" y="3" width="14" height="22" rx="3" stroke="currentColor" stroke-width="1.8"/><path d="M11 22h6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
-          </div>
+        <div class="fx-card reveal" style="--d:.24s">
+          <div class="fx-card__icon"><svg width="26" height="26" viewBox="0 0 28 28" fill="none" aria-hidden="true"><rect x="7" y="3" width="14" height="22" rx="3" stroke="currentColor" stroke-width="1.8"/><path d="M11 22h6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></div>
           <h3>متوافق مع الأجهزة</h3>
           <p>يعمل بسلاسة على الكمبيوتر والموبايل والأجهزة اللوحية.</p>
         </div>
       </div>
-      <div class="about-tech">
+
+      <div class="fx-tech reveal">
         <h2>التقنيات المستخدمة</h2>
-        <div class="tech-list">
-          <span class="tech-badge">HTML5</span>
-          <span class="tech-badge">CSS3</span>
-          <span class="tech-badge">JavaScript ES6+</span>
-          <span class="tech-badge">Fabric.js</span>
-          <span class="tech-badge">Canvas API</span>
-          <span class="tech-badge">Web Share API</span>
+        <div class="fx-chips">
+          <span class="fx-chip" dir="ltr">HTML5</span><span class="fx-chip" dir="ltr">CSS3</span><span class="fx-chip" dir="ltr">JavaScript ES6+</span>
+          <span class="fx-chip" dir="ltr">Fabric.js</span><span class="fx-chip" dir="ltr">Canvas API</span><span class="fx-chip" dir="ltr">Web Share API</span>
         </div>
       </div>
-      <div class="about-cta">
+
+      <div class="fx-cta reveal reveal--scale">
         <h2>جاهز للبدء؟</h2>
         <p>ابدأ الآن في إنشاء صورتك الاحترافية</p>
-        <a href="editor.html" class="btn btn--amber btn--lg">
+        <a href="editor.html" class="btn btn--amber btn--xl">
           ابدأ التصميم
-          <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M4 9h10M10 4l4 5-4 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M16 10H4M8 4l-6 6 6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </a>
       </div>
     </div>
   </main>
 
-  <footer class="footer">
+  <footer class="footer fx-footer">
     <div class="container footer__inner">
-      <div class="footer__brand">
-        <a href="index.html" class="logo">
-          <div class="logo__mark" style="width:36px;height:36px;">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-              <path d="M12 1l2.6 6.4L21 10l-6.4 2.6L12 19l-2.6-6.4L3 10l6.4-2.6z" fill="currentColor" opacity="0.4"/>
-              <path d="M12 4.5l1.7 4.3 4.3 1.7-4.3 1.7L12 16.7l-1.7-4.5-4.3-1.7 4.3-1.7z" fill="currentColor"/>
-            </svg>
-          </div>
-          Frame Studio
-        </a>
-        <p class="footer__tagline">صمّم صورتك التكريمية في ثواني</p>
-      </div>
+      <span class="fx-footer__word" role="img" aria-label="FRAMEO"></span>
+      <p class="footer__tagline">إطارك.. بطريقتك — صمّم صورتك التكريمية في ثواني</p>
       <div class="footer__links">
         <a href="index.html">الرئيسية</a>
         <a href="editor.html">إنشاء التصميم</a>
         <a href="about.html">حول الموقع</a>
       </div>
-      <div class="footer__bottom">
-        <p>جميع الحقوق محفوظة © 2026</p>
-      </div>
+      <div class="footer__bottom"><p>جميع الحقوق محفوظة © 2026 FRAMEO</p></div>
     </div>
   </footer>
 

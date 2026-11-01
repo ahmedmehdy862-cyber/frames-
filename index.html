@@ -3,252 +3,193 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="FRAMEO - إطارك بطريقتك. صمّم صورتك الاحترافية في ثواني. MAKE IT YOURS">
+  <script>document.documentElement.classList.add('js');</script>
   <title>FRAMEO | إطارك بطريقتك</title>
+  <meta name="description" content="FRAMEO — إطارك بطريقتك. صمّم صورتك التكريمية الاحترافية في ثواني، وكل شيء يحدث على جهازك بخصوصية كاملة. MAKE IT YOURS">
   <meta name="robots" content="index,follow">
-  <link rel="stylesheet" href="css/style.css">
-  <link rel="stylesheet" href="css/responsive.css">
+  <meta name="theme-color" content="#0a0d1c">
+  <meta property="og:title" content="FRAMEO | إطارك بطريقتك">
+  <meta property="og:description" content="صمّم صورتك التكريمية الاحترافية في ثواني.">
+  <meta property="og:image" content="assets/brand/icon-512.png">
+  <link rel="icon" type="image/png" sizes="48x48" href="assets/brand/favicon-48.png">
+  <link rel="apple-touch-icon" href="assets/brand/apple-touch-icon.png">
+  <link rel="preload" as="image" href="assets/brand/frameo-wordmark.png">
+  <link rel="stylesheet" href="css/frameo.css">
 </head>
-<body>
-  <!-- Header -->
+<body class="fx">
+  <!-- Splash: يظهر مرة واحدة في كل جلسة -->
+  <div class="splash" id="splash" aria-hidden="true">
+    <div class="splash__logo"><span class="fx-lockup__mark"></span><span class="fx-lockup__word"></span></div>
+    <div class="splash__tag">إطارك.. بطريقتك</div>
+    <div class="splash__bar"></div>
+  </div>
+
   <header class="header" id="header">
     <div class="container header__inner">
-      <a href="index.html" class="logo" aria-label="FRAMEO">
-        <div class="logo__mark"><img src="assets/brand/frameo-logo.png" alt="FRAMEO" style="width:100%;height:100%;object-fit:contain;background:#0D1020"></div>
-        FRAMEO
+      <a href="index.html" class="logo" aria-label="FRAMEO — الرئيسية">
+        <span class="logo__mark" aria-hidden="true"></span><span class="logo__word" aria-hidden="true"></span>
       </a>
-      <nav class="nav" id="mainNav" aria-label="القائمة">
+      <nav class="nav" id="mainNav" aria-label="القائمة الرئيسية">
         <ul class="nav__list">
           <li><a href="index.html" class="nav__link active">الرئيسية</a></li>
           <li><a href="editor.html" class="nav__link">إنشاء التصميم</a></li>
           <li><a href="#how" class="nav__link">طريقة الاستخدام</a></li>
           <li><a href="about.html" class="nav__link">حول</a></li>
-
         </ul>
       </nav>
-      <button class="menu-btn" id="menuBtn" aria-label="القائمة" aria-expanded="false">
+      <button class="menu-btn" id="menuBtn" aria-label="القائمة" aria-expanded="false" aria-controls="mainNav">
         <span></span><span></span><span></span>
       </button>
     </div>
   </header>
 
-  <!-- Hero -->
-  <section class="hero">
-    <div class="khatam-pattern"></div>
-    <div class="hero__spot"></div>
-    <div class="container hero__grid">
-      <div class="hero__visual">
-        <div class="hero__seal" aria-hidden="true">
-          <svg viewBox="0 0 200 200" fill="none" stroke="currentColor" stroke-width="1.5">
-            <path d="M100 0l28 72 72 28-72 28-28 72-28-72-72-28 72-28z" fill="currentColor" opacity="0.5"/>
-            <path d="M100 18l22 60 60 22-60 22-22 60-22-60-60-22 60-22z" fill="currentColor" opacity="0.35"/>
-            <circle cx="100" cy="100" r="26" fill="currentColor" opacity="0.4"/>
-            <circle cx="100" cy="100" r="10" fill="currentColor"/>
-          </svg>
+  <main>
+    <!-- Hero -->
+    <section class="fx-hero">
+      <div class="fx-bg" aria-hidden="true">
+        <i class="fx-blob fx-blob--1"></i><i class="fx-blob fx-blob--2"></i><i class="fx-blob fx-blob--3"></i>
+      </div>
+      <div class="container fx-hero__grid">
+        <div class="fx-hero__content">
+          <div class="fx-lockup" role="img" aria-label="FRAMEO">
+            <span class="fx-lockup__mark"></span><span class="fx-lockup__word"></span>
+          </div>
+          <div class="fx-tag reveal-load" style="--d:.5s"><i></i> إطارك.. بطريقتك &nbsp;•&nbsp; MAKE IT YOURS</div>
+          <h1 class="reveal-load" style="--d:.65s">
+            صمّم صورتك <span class="fx-grad-text">التكريمية</span><br>في ثواني
+          </h1>
+          <p class="fx-hero__sub reveal-load" style="--d:.8s">
+            ارفع صورتك، وسيضعها الإطار الاحترافي في مكانها، أضف الاسم والمسمى وكلمة الشكر — واحصل على تصميمك الجاهز للنشر. كل شيء يحدث على جهازك بخصوصية كاملة.
+          </p>
+          <div class="fx-hero__cta reveal-load" style="--d:.95s">
+            <a href="editor.html" class="btn btn--amber btn--xl">
+              ابدأ التصميم
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M16 10H4M8 4l-6 6 6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </a>
+            <a href="#how" class="btn btn--ghost btn--xl">طريقة الاستخدام</a>
+          </div>
+          <div class="fx-stats reveal-load" style="--d:1.1s">
+            <div class="fx-stat"><b>100%</b><span>خصوصية تامة</span></div>
+            <div class="fx-stat"><b>∞</b><span>بدون حدود</span></div>
+            <div class="fx-stat"><b>HD</b><span>جودة عالية</span></div>
+          </div>
         </div>
-        <div class="hero__frame-wrap">
-          <div class="hero__frame-plate">
-            <img src="codemakers.png" alt="مشاركة في codemakers" aria-hidden="true">
-          </div>
-          <div class="hero__badge hero__badge--1">
-            <div class="hero__badge-icon hero__badge-icon--amber">
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 1l2 5h5l-4 3.5 1.5 5L8 11.5 3.5 14.5 5 9.5 1 6h5z" fill="currentColor"/></svg>
+
+        <div class="fx-visual reveal-load" style="--d:.7s" id="heroVisual">
+          <div class="fx-ring" aria-hidden="true"></div>
+          <div class="fx-ring fx-ring--2" aria-hidden="true"></div>
+          <div class="fx-plate-wrap">
+            <div class="fx-plate" id="heroPlate">
+              <img src="assets/frames/codemakers.webp" alt="مثال على فريم من FRAMEO" width="800" height="800" fetchpriority="high">
             </div>
-            تصميم احترافي
-          </div>
-          <div class="hero__badge hero__badge--2">
-            <div class="hero__badge-icon hero__badge-icon--gold">
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 1l2 5h5l-4 3.5 1.5 5L8 11.5 3.5 14.5 5 9.5 1 6h5z" fill="currentColor"/></svg>
+            <div class="fx-badge fx-badge--1">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 1l2 5h5l-4 3.5 1.5 5L8 11.5 3.5 14.5 5 9.5 1 6h5z"/></svg>
+              تصميم احترافي
             </div>
-            جودة عالية
+            <div class="fx-badge fx-badge--2">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 1l2 5h5l-4 3.5 1.5 5L8 11.5 3.5 14.5 5 9.5 1 6h5z"/></svg>
+              جودة عالية
+            </div>
           </div>
         </div>
       </div>
-      <div class="hero__content">
-        <div class="hero__tag">
-          <span class="hero__tag-dot" style="background:var(--gradient)"></span>
-          FRAMEO — إطارك.. بطريقتك &nbsp;•&nbsp; MAKE IT YOURS
+      <div class="fx-scroll" aria-hidden="true"></div>
+    </section>
+
+    <!-- Marquee -->
+    <div class="fx-marquee" aria-hidden="true">
+      <div class="fx-marquee__track">
+        <span class="fx-marquee__item">شكراً وتقديراً <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 1l2.6 6.4L21 10l-6.4 2.6L12 19l-2.6-6.4L3 10l6.4-2.6z"/></svg> فخر وامتنان <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 1l2.6 6.4L21 10l-6.4 2.6L12 19l-2.6-6.4L3 10l6.4-2.6z"/></svg> عرفان جميل <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 1l2.6 6.4L21 10l-6.4 2.6L12 19l-2.6-6.4L3 10l6.4-2.6z"/></svg> شكر وتقدير <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 1l2.6 6.4L21 10l-6.4 2.6L12 19l-2.6-6.4L3 10l6.4-2.6z"/></svg> فخر وامتنان <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 1l2.6 6.4L21 10l-6.4 2.6L12 19l-2.6-6.4L3 10l6.4-2.6z"/></svg></span>
+        <span class="fx-marquee__item">شكراً وتقديراً <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 1l2.6 6.4L21 10l-6.4 2.6L12 19l-2.6-6.4L3 10l6.4-2.6z"/></svg> فخر وامتنان <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 1l2.6 6.4L21 10l-6.4 2.6L12 19l-2.6-6.4L3 10l6.4-2.6z"/></svg> عرفان جميل <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 1l2.6 6.4L21 10l-6.4 2.6L12 19l-2.6-6.4L3 10l6.4-2.6z"/></svg> شكر وتقدير <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 1l2.6 6.4L21 10l-6.4 2.6L12 19l-2.6-6.4L3 10l6.4-2.6z"/></svg> فخر وامتنان <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 1l2.6 6.4L21 10l-6.4 2.6L12 19l-2.6-6.4L3 10l6.4-2.6z"/></svg></span>
+      </div>
+    </div>
+
+    <!-- Features -->
+    <section class="fx-section" id="features">
+      <div class="container">
+        <div class="fx-head reveal">
+          <div class="fx-over">ما يميّزنا</div>
+          <h2>كل ما تحتاجه لصورة تكريمية راقية</h2>
+          <p>أدوات احترافية لإنشاء صورتك المرسلة في التكريمات والعضويات — بدون برامج معقدة.</p>
         </div>
-        <h1 class="hero__title">
-          صمّم صورتك
-          <span class="hero__title-accent">التكريمية</span>
-          في ثواني
-        </h1>
-        <div class="hero__rule">
-          <svg class="star-8" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 1l2.6 6.4L21 10l-6.4 2.6L12 19l-2.6-6.4L3 10l6.4-2.6z"/></svg>
+        <div class="fx-cards">
+          <div class="fx-card reveal" style="--d:0s">
+            <div class="fx-card__icon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="4" stroke="currentColor" stroke-width="1.8"/><circle cx="9" cy="9" r="2.3" stroke="currentColor" stroke-width="1.6"/><path d="M3 17l5-6 4 5 3-3 6 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></div>
+            <h3>رفع الصور</h3>
+            <p>JPG, PNG, WEBP — مع دعم السحب والإفلات والاختيار المباشر.</p>
+          </div>
+          <div class="fx-card reveal" style="--d:.08s">
+            <div class="fx-card__icon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 2l2.4 6 6 2.4-6 2.4L12 19l-2.4-6.2L3.6 10.4l6-2.4z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg></div>
+            <h3>إطار ذكي</h3>
+            <p>صورتك توضع تلقائياً في الفراغ المخصص داخل الإطار الرسمي.</p>
+          </div>
+          <div class="fx-card reveal" style="--d:.16s">
+            <div class="fx-card__icon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 19V5h14v14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M14 14l5-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="10" cy="10" r="2" fill="currentColor"/></svg></div>
+            <h3>تعديل الصورة</h3>
+            <p>حرّك وكبّر وصغّر صورتك لتتناسب بشكل مثالي مع الإطار.</p>
+          </div>
+          <div class="fx-card reveal" style="--d:0s">
+            <div class="fx-card__icon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 6h14M5 12h10M5 18h12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></div>
+            <h3>النصوص والبيانات</h3>
+            <p>الاسم والمسمى وكلمة الشكر في أماكنها المحددة بدقة داخل الإطار.</p>
+          </div>
+          <div class="fx-card reveal" style="--d:.08s">
+            <div class="fx-card__icon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3v13M7 11l5 5 5-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 19v2h16v-2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></div>
+            <h3>تحميل عالي الجودة</h3>
+            <p>صدّر تصميمك PNG أو JPG بدقة الإطار الأصلية دون أي فقد في الجودة.</p>
+          </div>
+          <div class="fx-card reveal" style="--d:.16s">
+            <div class="fx-card__icon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 21c4.97 0 9-4.03 9-9s-4.03-9-9-9-9 4.03-9 9 4.03 9 9 9z" stroke="currentColor" stroke-width="1.8"/><path d="M9 12l2 2 4-4.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <h3>خصوصية تامة</h3>
+            <p>صورتك تبقى على جهازك — لا تُرفع لأي خادم في أي مرحلة.</p>
+          </div>
         </div>
-        <p class="hero__subtitle">
-          ارفع صورتك، وسيضعها الإطار الاحترافي في مكانها، أضف الاسم والمسمى وكلمة الشكر — واحصل على تصميمك الجاهز للنشر. كل شيء يحدث على جهازك بخصوصية كاملة.
-        </p>
-        <div class="hero__cta">
+      </div>
+    </section>
+
+    <!-- Steps -->
+    <section class="fx-section fx-steps-wrap" id="how">
+      <div class="container">
+        <div class="fx-head reveal">
+          <div class="fx-over">الطريقة</div>
+          <h2>أربع خطوات فقط</h2>
+          <p>من رفع الصورة إلى التحميل — تجربة سلسة وسريعة.</p>
+        </div>
+        <div class="fx-steps reveal" id="steps">
+          <div class="fx-steps__line" aria-hidden="true"></div>
+          <div class="fx-step"><div class="fx-step__n">01</div><h3>ارفع صورتك</h3><p>ارفع صورتك الشخصية من جهازك بأي صيغة مدعومة.</p></div>
+          <div class="fx-step"><div class="fx-step__n">02</div><h3>الإطار يضبط نفسه</h3><p>صورتك تُوضع تلقائياً في الفراغ داخل الإطار.</p></div>
+          <div class="fx-step"><div class="fx-step__n">03</div><h3>أضف بياناتك</h3><p>الاسم والمسمى وكلمة الشكر مع المعاينة المباشرة.</p></div>
+          <div class="fx-step"><div class="fx-step__n">04</div><h3>حمّل التصميم</h3><p>حمّل تصميمك النهائي بجودة عالية وشاركه مع من تحب.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="fx-section" style="padding-top:40px">
+      <div class="container">
+        <div class="fx-cta reveal reveal--scale">
+          <h2>جاهز لإكرام من يستحق؟</h2>
+          <p>ابدأ الآن في إنشاء صورتك التكريمية الاحترافية</p>
           <a href="editor.html" class="btn btn--amber btn--xl">
             ابدأ التصميم
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M4 10h12M12 4l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          </a>
-          <a href="#how" class="btn btn--ghost btn--xl">طريقة الاستخدام</a>
-        </div>
-        <div class="hero__stats">
-          <div class="hero-stat">
-            <div class="hero-stat__number">100%</div>
-            <div class="hero-stat__label">خصوصية تامة</div>
-          </div>
-          <div class="hero-stat">
-            <div class="hero-stat__number">∞</div>
-            <div class="hero-stat__label">بدون حدود</div>
-          </div>
-          <div class="hero-stat">
-            <div class="hero-stat__number">HD</div>
-            <div class="hero-stat__label">جودة عالية</div>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="hero__scroll" aria-hidden="true">
-      <div class="hero__scroll-line"></div>
-    </div>
-  </section>
-
-  <!-- Marquee -->
-  <div class="marquee" aria-hidden="true">
-    <div class="marquee__track">
-      <span class="marquee__item">شكراً وتقديراً <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 1l2.6 6.4L21 10l-6.4 2.6L12 19l-2.6-6.4L3 10l6.4-2.6z"/></svg> فخر وامتنان <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 1l2.6 6.4L21 10l-6.4 2.6L12 19l-2.6-6.4L3 10l6.4-2.6z"/></svg> عرفان جميل <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 1l2.6 6.4L21 10l-6.4 2.6L12 19l-2.6-6.4L3 10l6.4-2.6z"/></svg> شكر وتقدير <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 1l2.6 6.4L21 10l-6.4 2.6L12 19l-2.6-6.4L3 10l6.4-2.6z"/></svg> فخر وامتنان <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 1l2.6 6.4L21 10l-6.4 2.6L12 19l-2.6-6.4L3 10l6.4-2.6z"/></svg></span>
-      <span class="marquee__item">شكراً وتقديراً <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 1l2.6 6.4L21 10l-6.4 2.6L12 19l-2.6-6.4L3 10l6.4-2.6z"/></svg> فخر وامتنان <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 1l2.6 6.4L21 10l-6.4 2.6L12 19l-2.6-6.4L3 10l6.4-2.6z"/></svg> عرفان جميل <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 1l2.6 6.4L21 10l-6.4 2.6L12 19l-2.6-6.4L3 10l6.4-2.6z"/></svg> شكر وتقدير <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 1l2.6 6.4L21 10l-6.4 2.6L12 19l-2.6-6.4L3 10l6.4-2.6z"/></svg> فخر وامتنان <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 1l2.6 6.4L21 10l-6.4 2.6L12 19l-2.6-6.4L3 10l6.4-2.6z"/></svg></span>
-      <span class="marquee__item">شكراً وتقديراً <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 1l2.6 6.4L21 10l-6.4 2.6L12 19l-2.6-6.4L3 10l6.4-2.6z"/></svg> فخر وامتنان <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 1l2.6 6.4L21 10l-6.4 2.6L12 19l-2.6-6.4L3 10l6.4-2.6z"/></svg> عرفان جميل <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 1l2.6 6.4L21 10l-6.4 2.6L12 19l-2.6-6.4L3 10l6.4-2.6z"/></svg> شكر وتقدير <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 1l2.6 6.4L21 10l-6.4 2.6L12 19l-2.6-6.4L3 10l6.4-2.6z"/></svg> فخر وامتنان <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 1l2.6 6.4L21 10l-6.4 2.6L12 19l-2.6-6.4L3 10l6.4-2.6z"/></svg></span>
-    </div>
-  </div>
-
-  <!-- Features -->
-  <section class="section features" id="features">
-    <div class="khatam-pattern"></div>
-    <div class="container" style="position:relative;z-index:1;">
-      <div class="section__header">
-        <div class="section__overline">ما يميّزنا</div>
-        <h2 class="section__title">كل ما تحتاجه لصورة تكريمية راقية</h2>
-        <p class="section__desc">أدوات احترافية لإنشاء صورتك المرسلة في التكريمات والعضويات — بدون برامج معقدة.</p>
-      </div>
-      <div class="features__grid">
-        <div class="feature-card">
-          <div class="feature-card__icon feature-card__icon--navy">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="18" height="18" rx="3" stroke="currentColor" stroke-width="1.8"/><circle cx="9" cy="9" r="2.5" stroke="currentColor" stroke-width="1.5"/><path d="M3 17l5-6 4 5 3-3 6 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-          </div>
-          <h3>رفع الصور</h3>
-          <p>JPG, PNG, WEBP — مع دعم السحب والإفلات والاختيار المباشر.</p>
-        </div>
-        <div class="feature-card">
-          <div class="feature-card__icon feature-card__icon--amber">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M12 2l2.4 6 6 2.4-6 2.4L12 19l-2.4-6.2L3.6 10.4l6-2.4z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><rect x="4" y="4" width="16" height="16" rx="4" stroke="currentColor" stroke-width="1.2" stroke-dasharray="3 2"/></svg>
-          </div>
-          <h3>إطار ذكي</h3>
-          <p>صورتك توضع تلقائياً في الفراغ المخصص داخل الإطار الرسمي.</p>
-        </div>
-        <div class="feature-card">
-          <div class="feature-card__icon feature-card__icon--navy">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M5 19V5h14v14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M14 14l5-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="10" cy="10" r="2" fill="currentColor"/></svg>
-          </div>
-          <h3>تعديل الصورة</h3>
-          <p>حرّك وكبّر وصغّر صورتك لتتناسب بشكل مثالي مع الإطار.</p>
-        </div>
-        <div class="feature-card">
-          <div class="feature-card__icon feature-card__icon--amber">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M5 6h14M5 12h10M5 18h12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="19" cy="12" r="3" stroke="currentColor" stroke-width="1.5"/></svg>
-          </div>
-          <h3>النصوص والبيانات</h3>
-          <p>الاسم في مربعه والمسمى على يساره وكلمة الشكر على شريطها.</p>
-        </div>
-        <div class="feature-card">
-          <div class="feature-card__icon feature-card__icon--navy">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M12 3v13M7 11l5 5 5-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 19v2h16v-2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
-          </div>
-          <h3>تحميل عالي الجودة</h3>
-          <p>صدّر تصميمك PNG أو JPG بدقة الإطار الأصلية تجنّبن الندرة.</p>
-        </div>
-        <div class="feature-card">
-          <div class="feature-card__icon feature-card__icon--amber">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M12 21c4.97 0 9-4.03 9-9s-4.03-9-9-9-9 4.03-9 9 4.03 9 9 9z" stroke="currentColor" stroke-width="1.8"/><path d="M9 12l2 2 4-4.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          </div>
-          <h3>خصوصية تامة</h3>
-          <p>صورتك تبقى على جهازك — لا تُرفع لأي خادم في أي مرحلة.</p>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Steps -->
-  <section class="section steps-section" id="how">
-    <div class="khatam-pattern"></div>
-    <div class="container" style="position:relative;z-index:1;">
-      <div class="section__header">
-        <div class="section__overline">الطريقة</div>
-        <h2 class="section__title">أربع خطوات فقط</h2>
-        <p class="section__desc">من رفع الصورة إلى التحميل — تجربة سلسة وسريعة.</p>
-      </div>
-      <div class="steps__grid">
-        <div class="step-card">
-          <div class="step-card__num">01</div>
-          <h3>ارفع صورتك</h3>
-          <p>ارفع صورتك الشخصية من جهازك بأي صيغة مدعومة.</p>
-        </div>
-        <div class="step-card">
-          <div class="step-card__num">02</div>
-          <h3>الإطار يضبط نفسه</h3>
-          <p>صورتك تُوضع تلقائياً في الفراغ داخل الإطار المضيء.</p>
-        </div>
-        <div class="step-card">
-          <div class="step-card__num">03</div>
-          <h3>أضف بياناتك</h3>
-          <p>الاسم والمسمى وكلمة الشكر مع المعاينة المباشرة.</p>
-        </div>
-        <div class="step-card">
-          <div class="step-card__num">04</div>
-          <h3>حمّل التصميم</h3>
-          <p>حمّل تصميمك النهائي بجودة عالية وشاركه مع من تحب.</p>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- CTA -->
-  <section class="section cta-section">
-    <div class="khatam-pattern"></div>
-    <div class="container" style="position:relative;z-index:1;">
-      <div class="cta-section__inner">
-        <div class="section__header">
-          <h2 class="section__title" style="margin:0 auto;">جاهز لإكرام من يستحق؟</h2>
-          <p class="section__desc" style="margin:var(--sp-md) auto 0;">ابدأ الآن في إنشاء صورتك التكريمية الاحترافية</p>
-        </div>
-        <div class="cta-section__btn">
-          <a href="editor.html" class="btn btn--amber btn--xl">
-            ابدأ التصميم
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M4 10h12M12 4l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M16 10H4M8 4l-6 6 6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
           </a>
         </div>
       </div>
-    </div>
-  </section>
+    </section>
+  </main>
 
-  <!-- Footer -->
-  <footer class="footer">
+  <footer class="footer fx-footer">
     <div class="container footer__inner">
-      <div class="footer__brand">
-        <a href="index.html" class="logo">
-          <div class="logo__mark" style="width:36px;height:36px;">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-              <path d="M12 1l2.6 6.4L21 10l-6.4 2.6L12 19l-2.6-6.4L3 10l6.4-2.6z" fill="currentColor" opacity="0.4"/>
-              <path d="M12 4.5l1.7 4.3 4.3 1.7-4.3 1.7L12 16.7l-1.7-4.5-4.3-1.7 4.3-1.7z" fill="currentColor"/>
-            </svg>
-          </div>
-          Frame Studio
-        </a>
-        <p class="footer__tagline">صمّم صورتك التكريمية في ثواني</p>
-      </div>
+      <span class="fx-footer__word" role="img" aria-label="FRAMEO"></span>
+      <p class="footer__tagline">إطارك.. بطريقتك — صمّم صورتك التكريمية في ثواني</p>
       <div class="footer__links">
         <a href="index.html">الرئيسية</a>
         <a href="editor.html">إنشاء التصميم</a>
         <a href="about.html">حول الموقع</a>
       </div>
-      <div class="footer__bottom">
-        <p>جميع الحقوق محفوظة © 2026</p>
-      </div>
+      <div class="footer__bottom"><p>جميع الحقوق محفوظة © 2026 FRAMEO</p></div>
     </div>
   </footer>
 

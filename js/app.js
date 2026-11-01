@@ -1,10 +1,11 @@
 /* ========================================
-   FRAME STUDIO — App Logic
+   FRAMEO — المنطق المشترك + الموشن
    ======================================== */
-
 'use strict';
 
 const App = (() => {
+  const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
   function initHeader() {
     const h = document.getElementById('header');
     if (!h) return;
@@ -17,20 +18,16 @@ const App = (() => {
     const btn = document.getElementById('menuBtn');
     const nav = document.getElementById('mainNav');
     if (!btn || !nav) return;
-
+    const close = () => {
+      nav.classList.remove('open'); btn.classList.remove('open'); btn.setAttribute('aria-expanded', 'false');
+    };
     btn.addEventListener('click', () => {
       const open = nav.classList.toggle('open');
       btn.classList.toggle('open', open);
       btn.setAttribute('aria-expanded', open);
     });
-
-    nav.querySelectorAll('.nav__link').forEach(l => {
-      l.addEventListener('click', () => {
-        nav.classList.remove('open');
-        btn.classList.remove('open');
-        btn.setAttribute('aria-expanded', 'false');
-      });
-    });
+    nav.querySelectorAll('.nav__link').forEach(l => l.addEventListener('click', close));
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') close(); });
   }
 
   function showToast(msg, type = 'info', dur = 3500) {
@@ -39,52 +36,97 @@ const App = (() => {
     const t = document.createElement('div');
     t.className = `toast toast--${type}`;
     t.setAttribute('role', 'alert');
-    const icons = {
-      success: '<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.3"/><path d="M5 8l2 2 4-4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>',
-      error: '<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.3"/><path d="M5.5 5.5l5 5M10.5 5.5l-5 5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>',
-      info: '<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.3"/><path d="M8 7v3.5M8 5v.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>'
-    };
-    t.innerHTML = icons[type] || icons.info;
     const span = document.createElement('span');
-    span.textContent = msg;
+    span.textContent = msg;              // textContent دائماً — لا HTML من أي مصدر
     t.appendChild(span);
     c.appendChild(t);
     setTimeout(() => {
       t.classList.add('removing');
       t.addEventListener('animationend', () => t.remove());
+      setTimeout(() => t.remove(), 600);
     }, dur);
   }
 
   function initSmoothScroll() {
     document.querySelectorAll('a[href^="#"]').forEach(a => {
       a.addEventListener('click', e => {
-        const tgt = document.querySelector(a.getAttribute('href'));
-        if (tgt) { e.preventDefault(); tgt.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+        const id = a.getAttribute('href');
+        if (id.length < 2) return;
+        const tgt = document.querySelector(id);
+        if (tgt) { e.preventDefault(); tgt.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' }); }
       });
     });
   }
 
-  function initRevealAnimations() {
+  /* ظهور العناصر عند التمرير */
+  function initReveal() {
+    const els = document.querySelectorAll('.reveal');
+    if (!els.length) return;
+    if (!('IntersectionObserver' in window) || reduceMotion) { els.forEach(el => el.classList.add('in')); return; }
     const obs = new IntersectionObserver(entries => {
       entries.forEach(en => {
-        if (en.isIntersecting) {
-          en.target.style.animationPlayState = 'running';
-          obs.unobserve(en.target);
-        }
+        if (en.isIntersecting) { en.target.classList.add('in'); obs.unobserve(en.target); }
       });
-    }, { threshold: 0.1 });
+    }, { threshold: 0.12, rootMargin: '0px 0px -6% 0px' });
+    els.forEach(el => obs.observe(el));
+  }
 
-    document.querySelectorAll('.feature-card, .step-card, .about-card').forEach(el => {
-      el.style.animationPlayState = 'paused';
-      obs.observe(el);
+  /* إضاءة تتبع المؤشر على البطاقات */
+  function initSpotlight() {
+    if (reduceMotion) return;
+    document.querySelectorAll('.fx-card').forEach(card => {
+      card.addEventListener('pointermove', e => {
+        const r = card.getBoundingClientRect();
+        card.style.setProperty('--mx', (e.clientX - r.left) + 'px');
+        card.style.setProperty('--my', (e.clientY - r.top) + 'px');
+      });
     });
+  }
+
+  /* ميلان ثلاثي الأبعاد للوحة الفريم في الهيرو */
+  function initTilt() {
+    const wrap = document.getElementById('heroVisual');
+    const plate = document.getElementById('heroPlate');
+    if (!wrap || !plate || reduceMotion || !window.matchMedia('(hover: hover)').matches) return;
+    wrap.addEventListener('pointermove', e => {
+      const r = wrap.getBoundingClientRect();
+      const px = (e.clientX - r.left) / r.width - 0.5;
+      const py = (e.clientY - r.top) / r.height - 0.5;
+      plate.style.setProperty('--ry', (-px * 16) + 'deg');   // RTL-safe: الاتجاه يتبع المؤشر
+      plate.style.setProperty('--rx', (py * 12) + 'deg');
+    });
+    wrap.addEventListener('pointerleave', () => {
+      plate.style.setProperty('--ry', '0deg'); plate.style.setProperty('--rx', '0deg');
+    });
+  }
+
+  /* Splash: مرة واحدة لكل جلسة، ويمكن تخطيه بالنقر */
+  function initSplash() {
+    const s = document.getElementById('splash');
+    if (!s) return;
+    let seen = false;
+    try { seen = sessionStorage.getItem('frameo_splash') === '1'; } catch (e) { /* ignore */ }
+    if (seen || reduceMotion) { s.remove(); return; }
+    document.documentElement.style.overflow = 'hidden';
+    const finish = () => {
+      if (s.classList.contains('done')) return;
+      s.classList.add('done');
+      document.documentElement.style.overflow = '';
+      try { sessionStorage.setItem('frameo_splash', '1'); } catch (e) { /* ignore */ }
+      setTimeout(() => s.remove(), 1000);
+    };
+    s.addEventListener('click', finish);
+    setTimeout(finish, 2300);
   }
 
   function init() {
     initHeader();
     initMobileMenu();
     initSmoothScroll();
-    initRevealAnimations();
+    initReveal();
+    initSpotlight();
+    initTilt();
+    initSplash();
   }
 
   return { init, showToast };

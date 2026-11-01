@@ -1,129 +1,63 @@
 /* ========================================
-   FRAME STUDIO — Frame System (V3)
-   Loads frames from config/frames.json,
-   falls back to built-in data for file://
-   or when the config cannot be fetched.
+   FRAMEO — نظام الفريمات (V4)
+   المصدر: Supabase (الفريمات العامة فقط للزوار).
+   الفريم الخاص لا يظهر في أي قائمة؛ يُفتح فقط برابط
+   ?frame=ID&key=KEY وتتحقق منه قاعدة البيانات نفسها.
+   عند عدم ضبط الخادم أو تعذّر الاتصال: نقرأ config/frames.json
+   (فريمات عامة فقط).
    ======================================== */
-
 'use strict';
 
 const FramesManager = (() => {
   let framesData = [];
   let selectedFrame = null;
+  let privateFrame = null;       // فريم خاص مفتوح بمفتاح صحيح
+  let privateDenied = false;     // طُلب فريم خاص بمفتاح خاطئ
 
-  const BUILT_IN_FRAMES = [
-    {
-      id: 'codemakers',
-      name: 'The Code Makers Journey',
-      image: 'assets/frames/codemakers.webp',
-      canvasWidth: 2500,
-      canvasHeight: 2500,
-      photoArea: { x: 877, y: 881, width: 748, height: 748 },
-      textColors: ['#FFFFFF', '#FBAE42'],
-      text: {
-        name: { x: 1250, y: 1873, fontSize: 72, fontWeight: 'bold', color: '#FFFFFF', align: 'center', label: '\u0627\u0644\u0627\u0633\u0645', placeholder: '\u0623\u062F\u062E\u0644 \u0627\u0633\u0645\u0643' },
-        role: { x: 1250, y: 2036, fontSize: 52, fontWeight: 'bold', color: '#FFFFFF', align: 'center', label: '\u0627\u0644\u0639\u0636\u0648\u064A\u0629', value: 'Code Makers member' },
-        track: { x: 1250, y: 2200, fontSize: 50, fontWeight: 'bold', color: '#FFFFFF', align: 'center', label: '\u0627\u0644\u062A\u0631\u0627\u0643', options: ['Data analysis-Season1', 'UI/UX-Season1', 'Backend-Season1'] }
-      }
-    },
-    {
-      id: 'midnight-gold',
-      name: 'Midnight Gold \u2014 \u0634\u0647\u0627\u062F\u0629 \u0623\u0646\u064A\u0642\u0629',
-      image: 'assets/frames/midnight-gold.webp',
-      canvasWidth: 2500,
-      canvasHeight: 2500,
-      photoArea: { x: 550, y: 300, width: 1400, height: 1400 },
-      textColors: ['#F3ECDC', '#FBAE42', '#C9A35C'],
-      text: {
-        name: { x: 1250, y: 1890, fontSize: 96, fontWeight: 'bold', color: '#F3ECDC', align: 'center', label: '\u0627\u0644\u0627\u0633\u0645', placeholder: '\u0623\u062F\u062E\u0644 \u0627\u0644\u0627\u0633\u0645' },
-        role: { x: 1250, y: 2020, fontSize: 56, fontWeight: 'bold', color: '#FBAE42', align: 'center', label: '\u0627\u0644\u0645\u0633\u0645\u0649 \u0623\u0648 \u0627\u0644\u0639\u0636\u0648\u064A\u0629', placeholder: '\u0623\u062F\u062E\u0644 \u0627\u0644\u0645\u0633\u0645\u0649' },
-        note: { x: 1250, y: 2160, fontSize: 46, fontWeight: 'normal', color: '#F3ECDC', align: 'center', label: '\u0643\u0644\u0645\u0629 \u0627\u0644\u0634\u0643\u0631', placeholder: '\u0634\u0643\u0631\u0627\u064B \u0648\u062A\u0642\u062F\u064A\u0631\u0627\u064B' }
-      }
-    }
-  ];
+  const params = () => { try { return new URLSearchParams(location.search); } catch (e) { return new URLSearchParams(); } };
 
-  // On file:// the browser taints the canvas for any <img> loaded from a
-  // relative path, which blocks toBlob/toDataURL on export. Loading the frame
-  // as an inline base64 data URL avoids the taint. We only pull in the (large)
-  // embedded data file when actually running from file://; over http(s) the
-  // normal image files are used and this is never loaded.
-  function isFileProtocol() {
-    return location.protocol === 'file:';
-  }
-
-  function loadEmbeddedData() {
-    if (window.FRAME_DATA) return Promise.resolve(window.FRAME_DATA);
-    return new Promise((resolve) => {
-      const s = document.createElement('script');
-      s.src = 'js/frames-data.js';
-      s.onload = () => resolve(window.FRAME_DATA || {});
-      s.onerror = () => { console.warn('Could not load js/frames-data.js'); resolve({}); };
-      document.head.appendChild(s);
-    });
-  }
-
-  function applyEmbeddedData() {
-    if (!isFileProtocol()) return Promise.resolve();
-    return loadEmbeddedData().then((data) => {
-      if (!data) return;
-      framesData.forEach(frame => {
-        if (data[frame.id]) frame.dataUrl = data[frame.id];
-      });
-    });
-  }
-
-  function getUrlKey(){ try{ return new URLSearchParams(location.search).get('key'); }catch{ return null; } }
-  function getUrlFrameId(){ try{ return new URLSearchParams(location.search).get('frame'); }catch{ return null; } }
-  function isFrameAccessible(frame){
-    if(!frame.visibility || frame.visibility==='public') return true;
-    const key = getUrlKey();
-    // private frame: allow if key matches, or if admin override is present (admin preview)
-    if(frame.visibility==='private'){
-      if(key && frame.accessKey && key===frame.accessKey) return true;
-      // also allow when explicitly requested via admin (localStorage override lists it)
-      // but hide from public listing
-      return false;
-    }
-    return true;
-  }
-  function getVisibleFrames(){
-    const key = getUrlKey(); const fid = getUrlFrameId();
-    // if a specific private frame is requested with correct key, show only that frame
-    if(fid && key){
-      const matched = framesData.find(f=> f.id===fid && f.accessKey===key);
-      if(matched) return [matched];
-    }
-    // if fid without key and frame is private, don't show it in listings
-    return framesData.filter(isFrameAccessible);
-  }
-  function getFrameById(id){
-    return framesData.find(f=> f.id===id && isFrameAccessible(f)) || framesData.find(f=> f.id===id) || null;
-  }
-  function getPublishUrl(frame){
-    const base = location.href.replace(/\/[^\/]*$/, '').replace(/\/editor\.html.*$/,'').replace(/\/$/,'');
-    if(frame.visibility==='private' && frame.accessKey) return `${location.origin}${location.pathname.replace(/\/[^\/]*$/,'')}/editor.html?frame=${frame.id}&key=${frame.accessKey}`;
-    return `${location.origin}${location.pathname.replace(/\/[^\/]*$/,'')}/editor.html?frame=${frame.id}`;
+  async function loadStatic() {
+    const resp = await fetch('config/frames.json', { cache: 'no-cache' });
+    if (!resp.ok) throw new Error('HTTP ' + resp.status);
+    const list = await resp.json();
+    return (Array.isArray(list) ? list : [])
+      .filter(f => !f.visibility || f.visibility === 'public')
+      .map(f => ({ ...f, visibility: 'public', accessKey: null }));
   }
 
   async function loadFrames() {
+    framesData = [];
+    privateFrame = null;
+    privateDenied = false;
+
+    // 1) الفريمات العامة
     try {
-      const resp = await fetch('config/frames.json');
-      if (!resp.ok) throw new Error('HTTP ' + resp.status);
-      const parsed = await resp.json();
-      framesData = (Array.isArray(parsed) && parsed.length) ? parsed : BUILT_IN_FRAMES;
+      framesData = Api.configured ? await Api.listPublic() : await loadStatic();
     } catch (e) {
-      console.warn('Could not load config/frames.json, using built-in frames:', e.message);
-      framesData = BUILT_IN_FRAMES;
+      console.warn('تعذّر تحميل الفريمات من الخادم، سيتم استخدام النسخة الثابتة:', e.message || e);
+      try { framesData = await loadStatic(); } catch (e2) { framesData = []; }
     }
-    // Admin local overrides (for preview before push)
-    try{
-      const stored = localStorage.getItem('fs_admin_frames');
-      if(stored){ const j=JSON.parse(stored); if(Array.isArray(j) && j.length) framesData = j; }
-    }catch(e){}
-    // Apply defaults for new fields
-    framesData = framesData.map(f=> ({ visibility:'public', accessKey: Math.random().toString(36).slice(2,9), ...f }));
-    await applyEmbeddedData();
+
+    // 2) فريم خاص مطلوب برابطه؟
+    const p = params();
+    const fid = p.get('frame'), key = p.get('key');
+    if (fid && key && Api.configured) {
+      try {
+        privateFrame = await Api.getPrivate(fid, key);
+        if (!privateFrame) privateDenied = true;
+      } catch (e) { privateDenied = true; }
+    }
   }
+
+  // قائمة العرض: لو فُتح فريم خاص بمفتاح صحيح نعرضه وحده، غير ذلك العامة فقط
+  function getVisibleFrames() {
+    if (privateFrame) return [privateFrame];
+    return framesData.filter(f => f.visibility === 'public');
+  }
+  function getAll() { return framesData.concat(privateFrame ? [privateFrame] : []); }
+  function getAllVisible() { return getVisibleFrames(); }
+  function getFrameById(id) { return getVisibleFrames().find(f => f.id === id) || null; }
+  function wasPrivateDenied() { return privateDenied; }
 
   function selectFrame(container, card, frame) {
     if (container) {
@@ -137,12 +71,15 @@ const FramesManager = (() => {
     selectedFrame = frame;
   }
 
-  function renderFrameCards(container, onSelect, opts={}) {
-    if (!container || !framesData.length) return;
+  function renderFrameCards(container, onSelect, opts = {}) {
+    if (!container) return;
     container.innerHTML = '';
-    const list = opts.showAll ? framesData : getVisibleFrames();
-    if(!list.length){
-      container.innerHTML = '<p style="grid-column:1/-1;text-align:center;color:#7c7f90;padding:20px">لا توجد فريمات متاحة. إذا كان الفريم خاصًا افتح رابطه الخاص.</p>';
+    const list = getVisibleFrames();
+    if (!list.length) {
+      const p = document.createElement('p');
+      p.className = 'frames-empty';
+      p.textContent = 'لا توجد فريمات متاحة حالياً.';
+      container.appendChild(p);
       return;
     }
     list.forEach(frame => {
@@ -156,9 +93,9 @@ const FramesManager = (() => {
 
       const imgWrap = document.createElement('div');
       imgWrap.className = 'frame-card__img';
-
       const img = document.createElement('img');
-      img.src = frame.dataUrl || frame.image;
+      img.crossOrigin = 'anonymous';   // ضروري لتصدير الكانفس من صور على نطاق آخر
+      img.src = frame.image;
       img.alt = frame.name;
       img.loading = 'lazy';
       imgWrap.appendChild(img);
@@ -174,26 +111,28 @@ const FramesManager = (() => {
         selectFrame(container, card, frame);
         if (onSelect) onSelect(frame);
       };
-
       card.addEventListener('click', choose);
       card.addEventListener('keydown', e => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          choose();
-        }
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); choose(); }
       });
-
       container.appendChild(card);
     });
-
-    // Keep the first frame highlighted when the editor boots with it selected.
-    const first = container.querySelector('.frame-card');
-    if (first) selectFrame(container, first, framesData[0]);
   }
 
-  function getAll() { return framesData; }
-  function getAllVisible() { return getVisibleFrames(); }
+  function markActive(container, id) {
+    if (!container) return;
+    container.querySelectorAll('.frame-card').forEach(c => {
+      const on = c.dataset.frameId === id;
+      c.classList.toggle('active', on);
+      c.setAttribute('aria-pressed', on ? 'true' : 'false');
+    });
+  }
+
   function getSelectedFrame() { return selectedFrame; }
 
-  return { loadFrames, renderFrameCards, getAll, getAllVisible, getSelectedFrame, isFrameAccessible, getFrameById, getPublishUrl, getVisibleFrames };
+  return {
+    loadFrames, renderFrameCards, markActive,
+    getAll, getAllVisible, getVisibleFrames, getFrameById,
+    getSelectedFrame, wasPrivateDenied
+  };
 })();

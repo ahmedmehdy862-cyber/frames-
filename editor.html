@@ -4,18 +4,22 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="FRAMEO - محرر التصاميم | إطارك بطريقتك">
+  <meta name="referrer" content="same-origin">
+  <meta name="theme-color" content="#0a0d1c">
   <title>المحرر | FRAMEO</title>
+  <link rel="icon" type="image/png" sizes="48x48" href="assets/brand/favicon-48.png">
+  <link rel="apple-touch-icon" href="assets/brand/apple-touch-icon.png">
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="css/editor.css">
   <link rel="stylesheet" href="css/responsive.css">
+  <link rel="stylesheet" href="css/frameo.css">
 </head>
 <body class="editor-body">
   <!-- Header -->
   <header class="header" id="header">
     <div class="container header__inner">
-      <a href="index.html" class="logo" aria-label="FRAMEO">
-        <div class="logo__mark"><img src="assets/brand/frameo-logo.png" alt="FRAMEO" style="width:100%;height:100%;object-fit:contain"></div>
-        FRAMEO
+      <a href="index.html" class="logo" aria-label="FRAMEO — الرئيسية">
+        <span class="logo__mark" aria-hidden="true"></span><span class="logo__word" aria-hidden="true"></span>
       </a>
       <div>
         <a href="index.html" class="btn btn--ghost btn--sm">
@@ -206,6 +210,9 @@
   <div class="toast-wrap" id="toastContainer" aria-live="polite"></div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/config.js"></script>
+  <script src="js/api.js"></script>
   <script src="js/app.js"></script>
   <script src="js/frames.js"></script>
   <script src="js/editor.js"></script>

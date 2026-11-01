@@ -207,8 +207,12 @@ const Editor = (() => {
   }
 
   function loadFrame(frame) {
-    const src = frame.dataUrl || frame.image;
-    fabric.Image.fromURL(src, img => {
+    const src = frame.image;
+    fabric.Image.fromURL(src, (img, isError) => {
+      if (isError || !img || !img.width) {
+        App.showToast('تعذّر تحميل صورة الفريم', 'error', 5000);
+        return;
+      }
       if (frameImage) canvas.remove(frameImage);
       frameImage = img;
 
@@ -235,10 +239,11 @@ const Editor = (() => {
       // load stickers if any
       if(frameConfig.stickers && frameConfig.stickers.length){
         frameConfig.stickers.forEach(st=>{
-          fabric.Image.fromURL(st.image, sim=>{
+          fabric.Image.fromURL(st.image, (sim, sErr)=>{
+            if (sErr || !sim || !sim.width) return;
             sim.set({ left: st.x, top: st.y, scaleX: st.w / sim.width, scaleY: st.h / sim.height, selectable:true, hasControls:true, hasBorders:true, borderColor:'#5E3BFF', cornerColor:'#FF8A00', _layerId: st.id });
             stickerObjects[st.id]=sim; canvas.add(sim); restack(); canvas.renderAll(); renderLayersPanel();
-          });
+          }, { crossOrigin: 'anonymous' });
         });
       }
       restack();
@@ -254,7 +259,7 @@ const Editor = (() => {
       renderLayersPanel();
 
       if (userImage) repositionImage();
-    });
+    }, { crossOrigin: 'anonymous' });
   }
 
   function repositionImage() {
@@ -552,10 +557,11 @@ const Editor = (() => {
       const area = document.getElementById('canvasArea');
       panel = document.createElement('div');
       panel.id='layersPanel';
-      panel.style.cssText='position:absolute;top:12px;left:12px;background:rgba(13,16,32,0.92);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.15);border-radius:12px;padding:10px;min-width:170px;z-index:30;max-height:70%;overflow:auto';
+      panel.style.cssText='position:absolute;top:12px;inset-inline-start:12px;background:rgba(13,16,32,0.92);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.15);border-radius:12px;padding:10px;min-width:170px;z-index:30;max-height:70%;overflow:auto';
       panel.innerHTML='<div style="color:#fff;font-size:12px;font-weight:800;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center"><span>🎚️ الطبقات</span><button id="layersToggle" style="background:none;border:none;color:#8B93A7;cursor:pointer">—</button></div><div id="layersListEd"></div><small style="color:#8B93A7;font-size:10px">الأعلى = في المقدمة — اسحب للترتيب</small>';
       area.style.position='relative';
       area.appendChild(panel);
+      if (window.innerWidth <= 768) panel.querySelector('#layersListEd').style.display = 'none';
       panel.querySelector('#layersToggle').addEventListener('click',()=>{ const l=panel.querySelector('#layersListEd'); l.style.display=l.style.display==='none'?'':'none'; });
     }
     const list=panel.querySelector('#layersListEd');
@@ -604,31 +610,20 @@ const Editor = (() => {
 
     const params = new URLSearchParams(location.search);
     const requestedId = params.get('frame');
-    const requestedKey = params.get('key');
-    let initial = null;
-    if(requestedId){
-      const all = FramesManager.getAll();
-      // find with key check: private requires correct key
-      initial = all.find(f=> f.id===requestedId && (!f.visibility || f.visibility==='public' || f.accessKey===requestedKey));
-      if(!initial){
-        const exists = all.find(f=> f.id===requestedId);
-        if(exists && exists.visibility==='private'){
-          App.showToast('هذا الفريم خاص — تحتاج رابط الدعوة الصحيح','error',6000);
-        }
-      }
+    const visible = FramesManager.getVisibleFrames();
+    let initial = requestedId ? (visible.find(f => f.id === requestedId) || null) : null;
+    if (requestedId && !initial) {
+      App.showToast(
+        FramesManager.wasPrivateDenied() || params.get('key')
+          ? 'هذا الفريم خاص أو المفتاح غير صحيح — تحتاج الرابط الصحيح من الإدارة'
+          : 'هذا الفريم غير متاح',
+        'error', 6000);
     }
-    if(!initial){
-      const visible = FramesManager.getVisibleFrames ? FramesManager.getVisibleFrames() : FramesManager.getAll();
-      initial = visible[0] || FramesManager.getAll()[0];
-    }
+    if (!initial) initial = visible[0] || null;
     if (initial) {
       frameConfig = initial;
       loadFrame(frameConfig);
-      // highlight correct card after render
-      setTimeout(()=>{
-        const card = el.framesGrid.querySelector(`[data-frame-id="${initial.id}"]`);
-        if(card) card.classList.add('active');
-      },200);
+      FramesManager.markActive(el.framesGrid, initial.id);
     }
 
     goToStep(1);

@@ -1,180 +1,30 @@
-# Frame Studio
+# FRAMEO — إطارك بطريقتك
 
-أداة احترافية مجانية لإنشاء صور شخصية جاهزة باستخدام فريمات مخصصة. تعمل بالكامل في المتصفح بدون خادم.
+أداة لإنشاء صور تكريمية داخل فريمات مخصصة. معالجة صورة المستخدم تتم بالكامل داخل المتصفح (لا تُرفع لأي خادم)،
+ولوحة إدارة آمنة لرفع الفريمات وإدارتها.
 
-## Features
+- **الموقع العام:** `index.html` · `editor.html` · `about.html`
+- **الإدارة:** `admin.html` (دخول بحسابات حقيقية، رفع PNG/SVG/WEBP/JPG، عام/خاص، إدارة الحسابات)
+- **الواجهة:** RTL كاملة، هوية FRAMEO، موشن (Splash، لوجو متحرك، Reveal، Tilt، Marquee) مع احترام `prefers-reduced-motion`
 
-- رفع صور JPG, PNG, WEBP مع دعم السحب والإفلات
-- اختيار فريمات من مكتبة قابلة للتوسيع
-- تحريك وتكبير وتصغير الصورة داخل الفريم
-- إضافة النصوص (الاسم، المسمى، التفاصيل) مع تحديث مباشر
-- تخصيص حجم الخط واللون والمحاذاة
-- معاينة مباشرة أثناء التعديل
-- تصدير PNG أو JPG بجودة عالية
-- مشاركة عبر Web Share API
-- تصميم متجاوب يعمل على جميع الأجهزة
-- دعم كامل للعربية (RTL)
-- خصوصية تامة — لا صور تُرفع لأي خادم
+## الإعداد
+اتبع **[SETUP-AR.md](SETUP-AR.md)** (Supabase مجاني، حوالي 15 دقيقة). بدون إعداد: الموقع العام يعمل من `config/frames.json`
+واللوحة تعرض رسالة «تحتاج ربطاً بالخادم».
 
-## Installation
-
-### التشغيل المحلي
-
-1. حمّل أو استنسخ المستودع
-2. افتح `index.html` في المتصفح مباشرة
-
-```bash
-git clone https://github.com/yourusername/frame-studio.git
-cd frame-studio
-# افتح index.html في المتصفح
+## البنية
+```
+index.html / editor.html / about.html / admin.html
+css/    frameo.css (الهوية + الموشن) · style.css, editor.css, responsive.css (المحرر) · admin.css
+js/     config.js (إعدادات الاتصال) · api.js (Supabase) · frames.js · editor.js · export.js · admin.js · app.js
+supabase/schema.sql                       الجداول + RLS + التخزين
+supabase/functions/admin-users/index.ts   إدارة الحسابات (service_role على السيرفر فقط)
+assets/brand/   اللوجو (mark / wordmark / icons)
+config/frames.json   نسخة احتياطية عامة للفريمات الأصلية
 ```
 
-### التشغيل عبر خادم محلي (اختياري)
-
-```bash
-# باستخدام Python
-python -m http.server 8000
-
-# أو باستخدام Node.js
-npx serve .
-```
-
-## GitHub Pages
-
-### رفع المشروع على GitHub
-
-1. أنشئ مستودع جديد على GitHub
-2. ارفع جميع ملفات المشروع
-3. تأكد من بنية المجلدات الصحيحة
-
-### تفعيل GitHub Pages
-
-1. اذهب إلى **Settings** في المستودع
-2. اختر **Pages** من القائمة الجانبية
-3. في **Source** اختر **Deploy from a branch**
-4. اختر الفرع `main`
-5. اضغط **Save**
-6. بعد دقائق سيكون الموقع متاحًا على:
-   `https://yourusername.github.io/frame-studio/`
-
-## Project Structure
-
-```
-frame-studio/
-├── index.html              # الصفحة الرئيسية
-├── editor.html             # محرر التصاميم
-├── about.html              # حول الموقع
-│
-├── css/
-│   ├── style.css           # التصميم الأساسي و Design System
-│   ├── editor.css          # تصميم المحرر
-│   └── responsive.css      # التصميم المتجاوب
-│
-├── js/
-│   ├── app.js              # المنطق المشترك
-│   ├── editor.js           # محرك المحرر الرئيسي
-│   ├── frames.js           # نظام الفريمات
-│   └── export.js           # وحدة التصدير والمشاركة
-│
-├── assets/
-│   ├── frames/             # صور الفريمات (PNG شفاف)
-│   ├── images/             # صور أخرى
-│   └── fonts/              # خطوط مخصصة
-│
-├── config/
-│   └── frames.json         # إعدادات الفريمات
-│
-├── README.md
-└── .gitignore
-```
-
-## Adding a New Frame
-
-### الخطوة 1: إضافة صورة الفريم
-
-ضع صورة PNG شفافة في مجلد `assets/frames/`:
-
-```
-assets/frames/frame4.png
-```
-
-### الخطوة 2: إضافة الإعدادات
-
-أضف كائنًا جديدًا في `config/frames.json`:
-
-```json
-{
-  "id": "frame4",
-  "name": "الفريم الجديد",
-  "image": "assets/frames/frame4.png",
-  "canvasWidth": 1080,
-  "canvasHeight": 1080,
-  "text": {
-    "name": {
-      "x": 540,
-      "y": 800,
-      "fontSize": 42,
-      "fontWeight": "bold",
-      "color": "#FFFFFF",
-      "align": "center"
-    },
-    "title": {
-      "x": 540,
-      "y": 850,
-      "fontSize": 28,
-      "fontWeight": "normal",
-      "color": "#FFFFFF",
-      "align": "center"
-    },
-    "details": {
-      "x": 540,
-      "y": 900,
-      "fontSize": 22,
-      "fontWeight": "normal",
-      "color": "#FBAE42",
-      "align": "center"
-    }
-  }
-}
-```
-
-### تغيير أماكن النص
-
-عدّل قيم `x` و `y` في إعدادات كل frame لتحديد مكان النص:
-
-- `x`: الموقع الأفقي (بالبكسل من اليسار)
-- `y`: الموقع العمودي (بالبكسل من الأعلى)
-- `fontSize`: حجم الخط
-- `color`: لون النص (hex)
-- `align`: محاذاة النص (right, center, left)
-- `fontWeight`: سمك الخط (normal, bold)
-
-## Customization
-
-### تغيير الألوان
-
-عدّل المتغيرات في `css/style.css`:
-
-```css
-:root {
-  --color-primary: #014976;      /* الأزرق الرئيسي */
-  --color-accent: #FBAE42;       /* البرتقالي */
-  --color-bg: #F4F3EF;          /* خلفية الصفحة */
-}
-```
-
-## Tech Stack
-
-- HTML5
-- CSS3 (Custom Properties, Grid, Flexbox)
-- JavaScript ES6+ (Modules)
-- Fabric.js (Canvas manipulation)
-- Cairo + Tajawal fonts (Google Fonts)
-
-## Privacy
-
-جميع المعالجات تحدث داخل المتصفح. لا تتم أي عملية رفع صور إلى خوادم خارجية.
-
-## License
-
-MIT License
+## نموذج الأمان باختصار
+- الصلاحيات في **قاعدة البيانات (RLS)**: الزائر يقرأ العام فقط ولا يقدر يقرأ عمود `access_key`؛ الكتابة والرفع للإدارة النشطة فقط.
+- الفريم الخاص يُجلب عبر دالة `get_private_frame(id, key)` ولا يظهر في أي قائمة.
+- إنشاء/تعطيل/حذف الحسابات عبر Edge Function تتحقق أن المتصل `owner`.
+- SVG يُنظَّف بـ DOMPurify قبل الرفع، وتُفحص بصمة PNG/JPG/WEBP للتأكد أن المحتوى يطابق الامتداد.
+- مفتاح `anon` في `js/config.js` عام بطبيعته؛ **لا تضع `service_role` في الكود أبداً**.
