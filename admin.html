@@ -109,8 +109,8 @@
               <label>عرض الكانفاس<input type="number" id="fW" class="input" value="2500" min="100" max="10000"></label>
               <label>ارتفاع الكانفاس<input type="number" id="fH" class="input" value="2500" min="100" max="10000"></label>
             </div>
-            <label>صورة الفريم (PNG شفاف أو SVG أو WEBP)
-              <input type="file" id="fImageFile" class="input" accept=".png,.svg,.webp,.jpg,.jpeg,image/png,image/svg+xml,image/webp,image/jpeg">
+            <label>صورة الفريم (PNG شفاف أو SVG أو WEBP أو PSD/TIFF بطبقات)
+              <input type="file" id="fImageFile" class="input" accept=".png,.svg,.webp,.jpg,.jpeg,.psd,.tif,.tiff,image/png,image/svg+xml,image/webp,image/jpeg">
               <small id="imgInfo"></small>
             </label>
             <button type="button" id="btnFitCanvas" class="btn btn--ghost btn--sm" hidden>اضبط الكانفاس على أبعاد الصورة</button>
@@ -232,6 +232,7 @@
   <script src="js/config.js"></script>
   <script src="js/api.js"></script>
   <script src="js/app.js"></script>
+  <script src="js/importers.js"></script>
   <script src="js/admin.js"></script>
 </body>
 </html>

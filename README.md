@@ -4,7 +4,7 @@
 ولوحة إدارة آمنة لرفع الفريمات وإدارتها.
 
 - **الموقع العام:** `index.html` · `editor.html` · `about.html`
-- **الإدارة:** `admin.html` (دخول بحسابات حقيقية، رفع PNG/SVG/WEBP/JPG، عام/خاص، إدارة الحسابات)
+- **الإدارة:** `admin.html` (دخول بحسابات حقيقية، رفع PNG/SVG/WEBP/JPG واستيراد PSD/TIFF، عام/خاص، إدارة الحسابات)
 - **الواجهة:** RTL كاملة، هوية FRAMEO، موشن (Splash، لوجو متحرك، Reveal، Tilt، Marquee) مع احترام `prefers-reduced-motion`
 
 ## الإعداد
@@ -15,7 +15,7 @@
 ```
 index.html / editor.html / about.html / admin.html
 css/    frameo.css (الهوية + الموشن) · style.css, editor.css, responsive.css (المحرر) · admin.css
-js/     config.js (إعدادات الاتصال) · api.js (Supabase) · frames.js · editor.js · export.js · admin.js · app.js
+js/     config.js (إعدادات الاتصال) · api.js (Supabase) · frames.js · editor.js · export.js · admin.js · importers.js (PSD/TIFF) · app.js
 supabase/schema.sql                       الجداول + RLS + التخزين
 supabase/functions/admin-users/index.ts   إدارة الحسابات (service_role على السيرفر فقط)
 assets/brand/   اللوجو (mark / wordmark / icons)
