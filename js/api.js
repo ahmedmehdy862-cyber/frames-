@@ -17,13 +17,22 @@ const Api = (() => {
   );
 
   let sb = null;
+  // جلسة غير محفوظة: تُطلب كلمة المرور في كل زيارة/إعادة تحميل
+  const AUTH_OPTS = { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false };
+
+  // إزالة أي جلسة قديمة محفوظة من إصدارات سابقة (أمان إضافي)
+  try {
+    for (let i = localStorage.length - 1; i >= 0; i--) {
+      const k = localStorage.key(i);
+      if (k && /^sb-.*-auth-token/.test(k)) localStorage.removeItem(k);
+    }
+  } catch (e) { /* التخزين قد يكون معطّلاً */ }
+
   function client() {
     if (!configured) return null;
     if (!sb) {
       if (!window.supabase || !window.supabase.createClient) return null;
-      sb = window.supabase.createClient(cfg.SUPABASE_URL, cfg.SUPABASE_ANON_KEY, {
-        auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false }
-      });
+      sb = window.supabase.createClient(cfg.SUPABASE_URL, cfg.SUPABASE_ANON_KEY, { auth: AUTH_OPTS });
     }
     return sb;
   }
@@ -208,6 +217,23 @@ const Api = (() => {
     await client().storage.from(BUCKET).remove(list);
   }
 
+  /* ---------- إعدادات الموقع: صورة واجهة الرئيسية ---------- */
+  async function getHero() {
+    const c = client();
+    if (!c) return { image: '' };
+    const { data, error } = await c.from('site_settings').select('value').eq('key', 'hero').maybeSingle();
+    if (error) throw error;
+    const v = (data && data.value) || {};
+    return { image: String(v.image || ''), alt: String(v.alt || '') };
+  }
+  async function saveHero(value) {
+    const { error } = await client().from('site_settings').upsert(
+      { key: 'hero', value: { image: String(value.image || ''), alt: String(value.alt || '') }, updated_at: new Date().toISOString() },
+      { onConflict: 'key' }
+    );
+    if (error) throw error;
+  }
+
   /* ---------- الإدارة: الحسابات (owner فقط) ---------- */
   async function listProfiles() {
     const { data, error } = await client().from('profiles').select('id,email,display_name,role,active,created_at').order('created_at');
@@ -231,6 +257,7 @@ const Api = (() => {
     signIn, signOut, getSession, getProfile, changeOwnPassword,
     listAll, insertFrame, updateFrame, deleteFrame,
     uploadImage, copyImage, removeImages,
+    getHero, saveHero,
     listProfiles, adminUsers
   };
 })();

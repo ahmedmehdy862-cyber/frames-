@@ -29,6 +29,7 @@
   let dragTarget = null;
   let dragOffset = { x: 0, y: 0 };
   let idleTimer = null;
+  let hero = { image: '' };     // صورة واجهة الصفحة الرئيسية
 
   const ERRORS = {
     weak_password: 'كلمة المرور يجب ألا تقل عن 10 أحرف.',
@@ -96,6 +97,7 @@
     resetIdle();
     ['pointerdown', 'keydown'].forEach(ev => window.addEventListener(ev, resetIdle, { passive: true }));
     await loadFrames();
+    await loadHero();
     switchTab('frames');
   }
 
@@ -203,7 +205,7 @@
       info.textContent = 'صورة جديدة جاهزة للرفع: ' + pending.w + '×' + pending.h + ' • ' + pending.ext.toUpperCase() + ' • ' + Math.round(pending.size / 1024) + 'KB';
       show('btnFitCanvas', pending.w !== w || pending.h !== h);
     } else {
-      info.textContent = current && current.imagePath ? 'الصورة الحالية محفوظة على الخادم.' : 'لم تُرفع صورة بعد — الصيغ المسموحة: PNG, SVG, WEBP, JPG (حتى 15MB).';
+      info.textContent = current && current.imagePath ? 'الصورة الحالية محفوظة على الخادم.' : 'لم تُرفع صورة بعد — PNG, SVG, WEBP, JPG حتى 15MB، وPSD/TIFF حتى 500MB (يُحوَّل تلقائياً إلى PNG عالي الجودة).';
       show('btnFitCanvas', false);
     }
   }
@@ -697,6 +699,78 @@
   }
 
   /* ======================================================
+     صورة واجهة الصفحة الرئيسية
+     ====================================================== */
+  const HERO_DEFAULT = 'assets/frames/codemakers.webp';
+
+  function heroSrc() { return hero.image ? Api.imageUrl(hero.image) : HERO_DEFAULT; }
+
+  function renderHeroBox() {
+    const src = heroSrc();
+    ['heroThumb', 'heroPreview'].forEach(id => { const im = $(id); if (im) { im.src = src; im.hidden = false; } });
+    const st = $('heroState');
+    if (st) st.textContent = hero.image ? 'صورة مخصّصة منشورة الآن.' : 'الصورة الافتراضية المنشورة.';
+    show('btnHeroReset', !!hero.image);
+  }
+
+  async function loadHero() {
+    try { hero = await Api.getHero(); }
+    catch (e) { console.warn('hero settings:', e); hero = { image: '' }; }
+    renderHeroBox();
+  }
+
+  function openHero() { $('heroFile').value = ''; renderHeroBox(); show('heroModal'); }
+
+  function previewHeroPick(e) {
+    const file = e.target.files[0];
+    const pv = $('heroPreview');
+    if (!file) return;
+    if (pv) { pv.src = URL.createObjectURL(file); pv.hidden = false; }
+  }
+
+  async function saveHeroImage() {
+    const file = $('heroFile').files[0];
+    if (!file) { toast('اختر صورة أولاً.', 'info'); return; }
+    const btn = $('btnHeroSave'); btn.disabled = true;
+    try {
+      const prep = await prepareImage(file);
+      if (!prep) return;
+      if (prep.size > 45 * 1024 * 1024) throw new Error('صورة الواجهة كبيرة جداً (الحد 45MB) — اختر صورة أصغر.');
+      const path = await Api.uploadImage(prep.blob, prep.ext);
+      const old = hero.image;
+      await Api.saveHero({ image: path, alt: 'فريم من FRAMEO' });
+      hero = { image: path, alt: 'فريم من FRAMEO' };
+      if (old && old !== path) Api.removeImages([old]).catch(() => { });
+      show('heroModal', false);
+      renderHeroBox();
+      toast('تم تحديث صورة الواجهة — تظهر الآن في الصفحة الرئيسية.', 'success');
+    } catch (err) {
+      toast(errText(err), 'error');
+    } finally {
+      btn.disabled = false; $('heroFile').value = '';
+    }
+  }
+
+  async function resetHero() {
+    if (!hero.image) { show('heroModal', false); return; }
+    if (!confirm('استعادة صورة الواجهة الافتراضية وحذف الصورة المرفوعة؟')) return;
+    const btn = $('btnHeroReset'); btn.disabled = true;
+    const old = hero.image;
+    try {
+      await Api.saveHero({ image: '' });
+      hero = { image: '' };
+      if (old) Api.removeImages([old]).catch(() => { });
+      show('heroModal', false);
+      renderHeroBox();
+      toast('تمت استعادة صورة الواجهة الافتراضية.', 'info');
+    } catch (err) {
+      toast(errText(err), 'error');
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  /* ======================================================
      كلمة مروري
      ====================================================== */
   async function saveMyPassword() {
@@ -748,6 +822,11 @@
     $('btnSavePass').addEventListener('click', saveMyPassword);
     $('accountForm').addEventListener('submit', createAccount);
     $('btnGenPass').addEventListener('click', () => { $('accPass').value = genPassword(); $('accPass').type = 'text'; });
+    $('btnHeroOpen').addEventListener('click', openHero);
+    $('heroFile').addEventListener('change', previewHeroPick);
+    $('btnHeroSave').addEventListener('click', saveHeroImage);
+    $('btnHeroReset').addEventListener('click', resetHero);
+    $('btnHeroClose').addEventListener('click', () => show('heroModal', false));
     window.addEventListener('beforeunload', e => { if (dirty) { e.preventDefault(); e.returnValue = ''; } });
     initCanvasDrag();
   }

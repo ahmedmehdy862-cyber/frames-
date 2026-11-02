@@ -42,6 +42,7 @@
         <input id="loginPass" type="password" class="input" dir="ltr" autocomplete="current-password" required>
       </label>
       <p id="loginErr" class="gate__err" role="alert" hidden></p>
+      <p class="gate__note">🔐 لأمان أكبر: لا تُحفظ الجلسة — ستُطلب كلمة المرور في كل زيارة أو إعادة تحميل.</p>
       <button id="loginBtn" type="submit" class="btn btn--amber btn--xl btn--full">دخول</button>
       <a href="index.html" class="gate__back">← العودة للموقع</a>
     </form>
@@ -77,6 +78,14 @@
           <button type="button" class="filter-btn" data-filter="public">عامة</button>
           <button type="button" class="filter-btn" data-filter="private">خاصة</button>
         </div>
+
+        <div class="hero-box">
+          <div class="hero-box__head"><strong>واجهة الرئيسية</strong><span class="hero-box__tag">Hero</span></div>
+          <div class="hero-box__thumb"><img id="heroThumb" alt="صورة واجهة الموقع" loading="lazy"></div>
+          <small id="heroState" class="admin-hint"></small>
+          <button id="btnHeroOpen" type="button" class="btn btn--ghost btn--sm btn--full">تغيير صورة الواجهة</button>
+        </div>
+
         <div id="framesList" class="admin-frames-list"></div>
         <p class="admin-hint">كل حفظ ينشر فوراً: العامة تظهر لكل الزوار، والخاصة تُفتح برابطها السري فقط.</p>
       </aside>
@@ -225,10 +234,29 @@
     </div>
   </div>
 
+  <!-- صورة واجهة الصفحة الرئيسية -->
+  <div id="heroModal" class="modal" hidden>
+    <div class="modal__card modal__card--wide">
+      <h3>صورة واجهة الصفحة الرئيسية</h3>
+      <p class="admin-hint">الصورة التي تظهر في هيرو الرئيسية بدل الافتراضية. المسموح: PNG / SVG / WEBP / JPG، أو PSD / TIFF بطبقات (حتى 45MB بعد التحويل).</p>
+      <div class="hero-preview"><img id="heroPreview" alt="معاينة صورة الواجهة"></div>
+      <label>اختر صورة جديدة
+        <input type="file" id="heroFile" class="input" accept=".png,.svg,.webp,.jpg,.jpeg,.psd,.tif,.tiff,image/png,image/svg+xml,image/webp,image/jpeg">
+      </label>
+      <div class="row-gap">
+        <button id="btnHeroSave" type="button" class="btn btn--amber">حفظ ونشر</button>
+        <button id="btnHeroReset" type="button" class="btn btn--danger">استعادة الافتراضية</button>
+        <button id="btnHeroClose" type="button" class="btn btn--ghost">إغلاق</button>
+      </div>
+    </div>
+  </div>
+
   <div id="toastContainer" class="toast-wrap" aria-live="polite"></div>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
+  <script src="js/vendor/supabase.js"></script>
+  <script>if (!window.supabase) document.write('<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"><\/script>');</script>
+  <script src="js/vendor/dompurify.min.js"></script>
+  <script>if (!window.DOMPurify) document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"><\/script>');</script>
   <script src="js/config.js"></script>
   <script src="js/api.js"></script>
   <script src="js/app.js"></script>

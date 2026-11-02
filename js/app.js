@@ -119,6 +119,51 @@ const App = (() => {
     setTimeout(finish, 2300);
   }
 
+  /* PWA: تسجيل Service Worker + زر التثبيت */
+  let installPrompt = null;
+
+  function initPWA() {
+    if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js').catch(() => { /* غير مدعوم */ });
+      });
+    }
+
+    const btn = document.getElementById('installBtn');
+    if (!btn) return;
+
+    window.addEventListener('beforeinstallprompt', e => {
+      e.preventDefault();
+      installPrompt = e;
+      const item = btn.closest('li');
+      if (item) item.hidden = false;
+    });
+
+    window.addEventListener('appinstalled', () => {
+      installPrompt = null;
+      App.showToast('تم تثبيت FRAMEO على جهازك 🎉', 'success');
+    });
+
+    btn.addEventListener('click', async () => {
+      if (installPrompt) {
+        installPrompt.prompt();
+        const choice = await installPrompt.userChoice.catch(() => ({}));
+        installPrompt = null;
+        if (choice && choice.outcome === 'accepted') return;
+        App.showToast('يمكنك التثبيت من قائمة المتصفح في أي وقت.', 'info');
+        return;
+      }
+      const ios = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+        (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+      App.showToast(
+        ios
+          ? 'للتثبيت على iPhone: افتح الموقع في Safari ثم زر المشاركة ← «إضافة إلى الشاشة الرئيسية».'
+          : 'للتثبيت: من قائمة المتصفح (⋮) اختر «تثبيت التطبيق» أو «إضافة إلى الشاشة الرئيسية».',
+        'info', 9000
+      );
+    });
+  }
+
   function init() {
     initHeader();
     initMobileMenu();
@@ -127,6 +172,7 @@ const App = (() => {
     initSpotlight();
     initTilt();
     initSplash();
+    initPWA();
   }
 
   return { init, showToast };

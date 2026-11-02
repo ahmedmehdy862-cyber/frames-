@@ -13,6 +13,11 @@
   <meta property="og:image" content="assets/brand/icon-512.png">
   <link rel="icon" type="image/png" sizes="48x48" href="assets/brand/favicon-48.png">
   <link rel="apple-touch-icon" href="assets/brand/apple-touch-icon.png">
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="FRAMEO">
   <link rel="preload" as="image" href="assets/brand/frameo-wordmark.png">
   <link rel="stylesheet" href="css/frameo.css">
 </head>
@@ -35,6 +40,7 @@
           <li><a href="editor.html" class="nav__link">إنشاء التصميم</a></li>
           <li><a href="#how" class="nav__link">طريقة الاستخدام</a></li>
           <li><a href="about.html" class="nav__link">حول</a></li>
+          <li id="installItem" hidden><button type="button" id="installBtn" class="nav__link">تثبيت التطبيق</button></li>
         </ul>
       </nav>
       <button class="menu-btn" id="menuBtn" aria-label="القائمة" aria-expanded="false" aria-controls="mainNav">
@@ -194,6 +200,8 @@
   </footer>
 
   <div class="toast-wrap" id="toastContainer" aria-live="polite"></div>
+  <script src="js/config.js"></script>
+  <script src="js/home.js"></script>
   <script src="js/app.js"></script>
 </body>
 </html>

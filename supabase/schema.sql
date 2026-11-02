@@ -168,11 +168,40 @@ revoke all on function public.get_private_frame(text, text) from public;
 grant execute on function public.get_private_frame(text, text) to anon, authenticated;
 
 -- ---------------------------------------------------------------------
+-- 4b) إعدادات الموقع (صورة واجهة الرئيسية)
+-- ---------------------------------------------------------------------
+create table if not exists public.site_settings (
+  key        text primary key,
+  value      jsonb not null default '{}'::jsonb,
+  updated_at timestamptz not null default now()
+);
+
+alter table public.site_settings enable row level security;
+
+drop policy if exists site_settings_public_read on public.site_settings;
+drop policy if exists site_settings_admin_all   on public.site_settings;
+
+-- الزوار يقرؤون إعداد «hero» فقط (صورة الواجهة) — لا شيء آخر
+create policy site_settings_public_read on public.site_settings
+  for select to anon, authenticated
+  using (key = 'hero');
+
+-- الإدارة تقرأ وتكتب كل الإعدادات
+create policy site_settings_admin_all on public.site_settings
+  for all to authenticated
+  using (public.is_admin())
+  with check (public.is_admin());
+
+revoke all on public.site_settings from anon, authenticated;
+grant select on public.site_settings to anon, authenticated;
+grant insert, update, delete on public.site_settings to authenticated;
+
+-- ---------------------------------------------------------------------
 -- 5) تخزين الصور (Storage): الرفع للإدارة فقط
 -- ---------------------------------------------------------------------
 insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
 values (
-  'frames', 'frames', true, 15728640,
+  'frames', 'frames', true, 52428800,
   array['image/png', 'image/svg+xml', 'image/webp', 'image/jpeg']
 )
 on conflict (id) do update

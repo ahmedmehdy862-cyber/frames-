@@ -8,14 +8,23 @@
 'use strict';
 
 const Importers = (() => {
+  // المحلي أولاً (يعمل أوفلاين) ثم CDN كاحتياط
   const LIBS = {
-    psd: ['https://cdn.jsdelivr.net/npm/ag-psd@28.0.1/dist/bundle.js'],
-    tiff: ['https://cdn.jsdelivr.net/npm/pako@2.1.0/dist/pako.min.js', 'https://cdn.jsdelivr.net/npm/utif@3.1.0/UTIF.js']
+    psd: [
+      'js/vendor/ag-psd.js',
+      'https://cdn.jsdelivr.net/npm/ag-psd@28.0.1/dist/bundle.js'
+    ],
+    tiff: [
+      'js/vendor/pako.min.js',
+      'js/vendor/UTIF.js',
+      'https://cdn.jsdelivr.net/npm/pako@2.1.0/dist/pako.min.js',
+      'https://cdn.jsdelivr.net/npm/utif@3.1.0/UTIF.js'
+    ]
   };
-  const MAX_SRC = 300 * 1024 * 1024;       // الملف الأصلي (يُقرأ محلياً فقط)
+  const MAX_SRC = 500 * 1024 * 1024;       // الملف الأصلي (يُقرأ محلياً فقط)
   const MAX_PIXELS = 120e6;                // حماية الذاكرة
-  const MAX_SIDE = 6000;                   // أكبر ضلع للناتج
-  const MAX_PNG = 14.5 * 1024 * 1024;      // أقل من حد الرفع 15MB
+  const MAX_SIDE = 8000;                   // أكبر ضلع للناتج
+  const MAX_PNG = 45 * 1024 * 1024;        // أقل من حد الرفع في التخزين (50MB)
   const PH_RE = /(photo|picture|portrait|avatar|face|person|placeholder|صورة|شخص|وجه)/i;
 
   const BLEND = {
@@ -41,11 +50,15 @@ const Importers = (() => {
     return loaded[url];
   }
   async function ensure(kind) {
+    const ready = () => kind === 'psd'
+      ? !!(window.agPsd && window.agPsd.readPsd)
+      : !!(window.UTIF && window.UTIF.decode);
     for (const u of LIBS[kind]) {
-      try { await loadScript(u); } catch (e) { if (!/pako/.test(u)) throw e; }   // pako اختيارية (لـ TIFF المضغوط deflate فقط)
+      if (ready()) break;
+      try { await loadScript(u); } catch (e) { /* جرّب المصدر التالي */ }
     }
-    if (kind === 'psd' && !(window.agPsd && window.agPsd.readPsd)) fail('مكتبة PSD لم تُحمَّل بشكل صحيح.');
-    if (kind === 'tiff' && !(window.UTIF && window.UTIF.decode)) fail('مكتبة TIFF لم تُحمَّل بشكل صحيح.');
+    if (kind === 'psd' && !ready()) fail('مكتبة PSD لم تُحمَّل بشكل صحيح — تأكد من الاتصال بالإنترنت أول مرة.');
+    if (kind === 'tiff' && !ready()) fail('مكتبة TIFF لم تُحمَّل بشكل صحيح — تأكد من الاتصال بالإنترنت أول مرة.');
   }
 
   function sniff(h) {
@@ -65,7 +78,7 @@ const Importers = (() => {
       if (blob.size <= MAX_PNG) return { blob, w: c.width, h: c.height, scale: c.width / canvas.width };
       c = shrink(c, Math.max(0.3, Math.sqrt(MAX_PNG / blob.size) * 0.92));
     }
-    fail('الصورة كبيرة جداً حتى بعد التصغير — قلّل أبعادها أو عدد الطبقات ثم أعد المحاولة.');
+    fail('الصورة كبيرة جداً حتى بعد التصغير (الحد 45MB) — قلّل أبعادها أو عدد الطبقات ثم أعد المحاولة.');
   }
   function shrink(c, f) { const n = mk(c.width * f, c.height * f); const x = n.getContext('2d'); x.imageSmoothingQuality = 'high'; x.drawImage(c, 0, 0, n.width, n.height); return n; }
 
@@ -103,6 +116,15 @@ const Importers = (() => {
     }
   }
   const opac = o => (o == null ? 1 : (o > 1 ? o / 255 : o));
+  // حدود الطبقة (بعض الملفات لا تحمل right/bottom — نحسبها من المقاس)
+  function bounds(n) {
+    const x = n.left || 0, y = n.top || 0;
+    return {
+      x, y,
+      width: n.right != null ? n.right - x : (n.width || 0),
+      height: n.bottom != null ? n.bottom - y : (n.height || 0)
+    };
+  }
 
   function applyMask(n, src) {
     try {
@@ -198,8 +220,8 @@ const Importers = (() => {
             const c = current(); const f = Math.min(1, 420 / Math.max(c.width, c.height));
             prev.width = Math.max(1, Math.round(c.width * f)); prev.height = Math.max(1, Math.round(c.height * f));
             const x = prev.getContext('2d'); x.clearRect(0, 0, prev.width, prev.height); x.drawImage(c, 0, 0, prev.width, prev.height);
-            if (ph != null) { const n = list[ph]; x.save(); x.strokeStyle = '#5E3BFF'; x.setLineDash([6, 4]); x.lineWidth = 2; x.fillStyle = 'rgba(94,59,255,.2)';
-              const rx = n.left * f, ry = n.top * f, rw = (n.right - n.left) * f, rh = (n.bottom - n.top) * f; x.fillRect(rx, ry, rw, rh); x.strokeRect(rx, ry, rw, rh); x.restore(); }
+            if (ph != null) { const n = list[ph]; const b = bounds(n); x.save(); x.strokeStyle = '#5E3BFF'; x.setLineDash([6, 4]); x.lineWidth = 2; x.fillStyle = 'rgba(94,59,255,.2)';
+              const rx = b.x * f, ry = b.y * f, rw = b.width * f, rh = b.height * f; x.fillRect(rx, ry, rw, rh); x.strokeRect(rx, ry, rw, rh); x.restore(); }
           } catch (e) { /* ignore preview errors */ }
         }, 60);
         warn.textContent = (mode === 'layers' && special) ? '⚠️ في الملف تأثيرات/قصّ طبقات لا يدعمها التركيب اليدوي، فقد يختلف الناتج عن Photoshop. قارن المعاينة بالتركيب المدمج.' : '';
@@ -212,7 +234,8 @@ const Importers = (() => {
         try {
           const comp = current();
           const phNode = ph != null ? list[ph] : null;
-          result = { canvas: comp, photo: phNode ? { x: phNode.left, y: phNode.top, width: phNode.right - phNode.left, height: phNode.bottom - phNode.top, name: phNode.name } : null };
+          const b = phNode ? bounds(phNode) : null;
+          result = { canvas: comp, photo: b ? { x: b.x, y: b.y, width: b.width, height: b.height, name: phNode.name } : null };
         } catch (e) { result = { error: e }; }
         finish(result);
       }, () => finish(null));
@@ -303,7 +326,7 @@ const Importers = (() => {
      الواجهة العامة
      ====================================================== */
   async function importFile(file) {
-    if (file.size > MAX_SRC) fail('حجم الملف أكبر من 300MB.');
+    if (file.size > MAX_SRC) fail('حجم الملف أكبر من 500MB.');
     const buf = await file.arrayBuffer();
     const kind = sniff(new Uint8Array(buf, 0, Math.min(16, buf.byteLength)));
     if (kind === 'psb') fail('صيغة PSB (المستندات الكبيرة) غير مدعومة. احفظ الملف كـ PSD عادي.');
