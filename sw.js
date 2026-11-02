@@ -6,7 +6,7 @@
    ======================================== */
 'use strict';
 
-const VERSION = 'frameo-v1.0.0';
+const VERSION = 'frameo-v1.0.1';
 const CORE = 'frameo-core-' + VERSION;
 const RUNTIME = 'frameo-runtime-' + VERSION;
 
@@ -38,6 +38,7 @@ const PRECACHE = [
   './assets/brand/apple-touch-icon.png',
   './assets/brand/icon-192.png',
   './assets/brand/icon-512.png',
+  './assets/brand/icon-maskable-512.png',
   './assets/brand/frameo-mark.png',
   './assets/brand/frameo-wordmark.png',
   './assets/brand/frameo-logo-alpha.png',
