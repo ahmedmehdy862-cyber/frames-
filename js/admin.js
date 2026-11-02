@@ -281,7 +281,7 @@
     d.className = 'text-field'; d.dataset.sid = s.id; d.dataset.path = s.imagePath || '';
     d.innerHTML = `<div class="text-field__head"><strong>ملصق: ${esc(s.id)}</strong><button type="button" class="btn btn--danger btn--sm" data-del>حذف</button></div>
       <label>الاسم<input data-f="name" class="input" value="${esc(s.name)}" maxlength="60"></label>
-      <label>الصورة (PNG / SVG / WEBP)<input type="file" data-file accept=".png,.svg,.webp,.jpg,.jpeg,image/png,image/svg+xml,image/webp,image/jpeg" class="input"></label>
+      <label>الصورة (PNG / SVG / WEBP / PSD / TIFF)<input type="file" data-file accept=".png,.svg,.webp,.jpg,.jpeg,.psd,.tif,.tiff,image/png,image/svg+xml,image/webp,image/jpeg" class="input"></label>
       <small data-state>${s.imagePath ? 'صورة محفوظة.' : 'لم تُرفع صورة بعد.'}</small>
       <div class="admin-grid4">
         <label>X<input data-f="x" type="number" class="input" value="${+s.x || 0}"></label>
@@ -303,6 +303,7 @@
       const st = d.querySelector('[data-state]'); st.textContent = 'جارٍ التجهيز والرفع…';
       try {
         const prep = await prepareImage(file);
+        if (!prep) { st.textContent = ''; e.target.value = ''; return; }
         const path = await Api.uploadImage(prep.blob, prep.ext);
         sessionUploaded.add(path);
         d.dataset.path = path; d.dataset.url = Api.imageUrl(path);
@@ -512,7 +513,12 @@
     const name = (file.name || '').toLowerCase();
     let ext = name.includes('.') ? name.split('.').pop() : '';
     if (ext === 'jpeg') ext = 'jpg';
-    if (!['png', 'svg', 'webp', 'jpg'].includes(ext)) throw new Error('الصيغة غير مدعومة — ارفع PNG أو SVG أو WEBP أو JPG.');
+    if (ext === 'tif') ext = 'tiff';
+    if (['psd', 'tiff'].includes(ext)) {
+      if (!window.Importers) throw new Error('وحدة استيراد PSD/TIFF لم تُحمَّل.');
+      return Importers.importFile(file);   // يرجع PNG جاهز، أو null لو أُلغي
+    }
+    if (!['png', 'svg', 'webp', 'jpg'].includes(ext)) throw new Error('الصيغة غير مدعومة — ارفع PNG أو SVG أو WEBP أو JPG أو PSD أو TIFF.');
     if (file.size > MAX_IMG) throw new Error('حجم الملف أكبر من 15MB.');
     if (ext === 'svg') {
       const s = sanitizeSvg(await file.text());
@@ -532,9 +538,14 @@
     const file = e.target.files[0]; if (!file) return;
     try {
       const prep = await prepareImage(file);
+      if (!prep) { e.target.value = ''; return; }
       if (pending) URL.revokeObjectURL(pending.url);
       pending = { ...prep, url: URL.createObjectURL(prep.blob) };
       if (isDraft || !current.imagePath) { $('fW').value = prep.w; $('fH').value = prep.h; }
+      if (prep.photoArea) {
+        $('pX').value = prep.photoArea.x; $('pY').value = prep.photoArea.y; $('pW').value = prep.photoArea.width; $('pH').value = prep.photoArea.height;
+        toast('تم ضبط منطقة الصورة من طبقة «' + (prep.photoName || '') + '».', 'success');
+      }
       markDirty(); updateImageInfo(); drawPreview();
     } catch (err) { toast(errText(err), 'error'); e.target.value = ''; }
   }
