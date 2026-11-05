@@ -394,7 +394,10 @@
       box.appendChild(div);
     });
     bindLayerDrag();
-    if (selectedLayer && !full.includes(selectedLayer)) selectedLayer = null;
+    if (selectedLayer && !full.includes(selectedLayer)) {
+      selectedLayer = null;
+      if ($('layerInspector')) $('layerInspector').hidden = true;
+    }
     renderInspector();
   }
   function bindLayerDrag() {
