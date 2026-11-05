@@ -570,7 +570,13 @@ const Editor = (() => {
       panel.innerHTML='<div class="fc-layers__head"><span>🎚️ الطبقات</span><button type="button" id="layersToggle" class="fc-layers__toggle" aria-label="طي لوحة الطبقات">—</button></div><div id="layersListEd" class="fc-layers__list"></div><small class="fc-layers__hint">الأعلى = في المقدمة · 🚫 مخفية · 🔒 مقفولة</small>';
       area.style.position='relative';
       area.appendChild(panel);
-      panel.querySelector('#layersToggle').addEventListener('click',()=>panel.classList.toggle('is-collapsed'));
+      if (window.innerWidth <= 768) panel.classList.add('is-collapsed');
+      const toggle = panel.querySelector('#layersToggle');
+      toggle.setAttribute('aria-expanded', String(!panel.classList.contains('is-collapsed')));
+      toggle.addEventListener('click',()=>{
+        panel.classList.toggle('is-collapsed');
+        toggle.setAttribute('aria-expanded', String(!panel.classList.contains('is-collapsed')));
+      });
     }
     const list=panel.querySelector('#layersListEd');
     const order=getLayerOrder();
