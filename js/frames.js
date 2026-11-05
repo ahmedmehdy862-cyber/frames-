@@ -78,7 +78,7 @@ const FramesManager = (() => {
     if (!list.length) {
       const p = document.createElement('p');
       p.className = 'frames-empty';
-      p.textContent = 'لا توجد فريمات متاحة حالياً.';
+      p.textContent = 'لا توجد إطارات متاحة حالياً.';
       container.appendChild(p);
       return;
     }

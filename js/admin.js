@@ -18,12 +18,15 @@
   const IDLE_MS = 30 * 60 * 1000;
 
   let me = null;                // ملف الحساب الحالي
-  let frames = [];              // كل الفريمات (عامة + خاصة)
-  let current = null;           // الفريم قيد التعديل (النسخة المحفوظة)
-  let isDraft = false;          // فريم جديد لم يُحفظ بعد
+  let frames = [];              // كل الإطارات (عامة + خاصة)
+  let current = null;           // الإطار قيد التعديل (النسخة المحفوظة)
+  let isDraft = false;          // إطار جديد لم يُحفظ بعد
   let filter = 'all';
+  let searchQuery = '';
   let dirty = false;
-  let pending = null;           // صورة الفريم المختارة ولم تُرفع بعد { blob, ext, url, w, h, size }
+  let pending = null;           // صورة الإطار المختارة ولم تُرفع بعد { blob, ext, url, w, h, size }
+  let hiddenLayers = [];        // طبقات مخفية من التصميم
+  let lockedLayers = [];        // طبقات مقفولة ضد التحريك
   const sessionUploaded = new Set();
   const imgCache = {};
   let dragTarget = null;
@@ -46,7 +49,7 @@
     if (ERRORS[m]) return ERRORS[m];
     if (/already.*registered|already been registered|exists/i.test(m)) return 'هذا البريد مسجّل مسبقاً.';
     if (/Failed to send a request|FunctionsFetchError|404|not found/i.test(m) && /function|Edge|Failed/i.test(m)) return 'تعذّر الوصول لدالة إدارة الحسابات (admin-users). تأكد من نشرها في Supabase.';
-    if (/duplicate key|already exists/i.test(m)) return 'المعرّف (id) مستخدم لفريم آخر.';
+    if (/duplicate key|already exists/i.test(m)) return 'المعرّف (id) مستخدم لإطار آخر.';
     if (/row-level security|permission denied|violates row/i.test(m)) return 'ليست لديك صلاحية لهذه العملية (RLS).';
     if (/mime|not supported|invalid_mime/i.test(m)) return 'نوع الملف غير مسموح به في التخزين.';
     if (/exceeded|too large|size/i.test(m)) return 'حجم الملف أكبر من المسموح.';
@@ -120,11 +123,11 @@
   }
 
   /* ======================================================
-     الفريمات: تحميل وقائمة
+     الإطارات: تحميل وقائمة
      ====================================================== */
   async function loadFrames(selectId) {
     try { frames = await Api.listAll(); }
-    catch (e) { toast('تعذّر تحميل الفريمات: ' + errText(e), 'error'); frames = []; }
+    catch (e) { toast('تعذّر تحميل الإطارات: ' + errText(e), 'error'); frames = []; }
     renderList();
     const target = (selectId && frames.find(f => f.id === selectId)) || frames[0];
     if (target) selectFrame(target.id, true); else clearSelection();
@@ -137,10 +140,14 @@
 
   function renderList() {
     const list = $('framesList'); list.textContent = '';
-    const shown = frames.filter(f => filter === 'all' || f.visibility === filter);
+    const q = searchQuery.trim().toLowerCase();
+    const shown = frames.filter(f =>
+      (filter === 'all' || f.visibility === filter) &&
+      (!q || (f.name || '').toLowerCase().includes(q) || (f.id || '').toLowerCase().includes(q))
+    );
     $('framesCount').textContent = shown.length + ' / ' + frames.length;
     if (!shown.length) {
-      const p = document.createElement('p'); p.className = 'admin-hint'; p.textContent = 'لا توجد فريمات هنا.'; list.appendChild(p); return;
+      const p = document.createElement('p'); p.className = 'admin-hint'; p.textContent = q ? 'لا توجد نتائج مطابقة للبحث.' : 'لا توجد إطارات هنا.'; list.appendChild(p); return;
     }
     shown.forEach(f => {
       const row = document.createElement('div');
@@ -184,6 +191,10 @@
     $('pW').value = f.photoArea ? f.photoArea.width : 500;
     $('pH').value = f.photoArea ? f.photoArea.height : 500;
     $('fColors').value = (f.textColors || []).join(', ');
+    hiddenLayers = Array.isArray(f.layerHidden) ? [...f.layerHidden] : [];
+    lockedLayers = Array.isArray(f.layerLocked) ? [...f.layerLocked] : [];
+    selectedLayer = null;
+    if ($('layerInspector')) $('layerInspector').hidden = true;
     document.querySelectorAll('input[name="vis"]').forEach(r => { r.checked = r.value === (f.visibility || 'public'); });
     $('fKey').value = f.accessKey || '';
     updateVisUI(); updateImageInfo();
@@ -191,7 +202,7 @@
     renderStickers(f.stickers || []);
     renderLayers(f);
     updateLinks();
-    $('frameTitle').textContent = isDraft ? 'فريم جديد (غير محفوظ)' : f.name;
+    $('frameTitle').textContent = isDraft ? 'إطار جديد (غير محفوظ)' : f.name;
   }
 
   function updateImageInfo() {
@@ -248,22 +259,22 @@
       <div class="text-field__head"><strong>المفتاح: <input value="${v(key)}" data-field="key" class="input input--inline" dir="ltr" maxlength="40"></strong>
         <button type="button" class="btn btn--danger btn--sm" data-del>حذف</button></div>
       <div class="admin-grid2">
-        <label>التسمية (label)<input data-field="label" class="input" value="${v(cfg.label)}" maxlength="80"></label>
-        <label>placeholder<input data-field="placeholder" class="input" value="${v(cfg.placeholder)}" maxlength="80"></label>
+        <label>التسمية<input data-field="label" class="input" value="${v(cfg.label)}" maxlength="80"></label>
+        <label>النص الإرشادي<input data-field="placeholder" class="input" value="${v(cfg.placeholder)}" maxlength="80"></label>
       </div>
       <div class="admin-grid2">
-        <label>قيمة ثابتة <small>اتركه فارغ للسماح بالإدخال</small><input data-field="value" class="input" value="${v(cfg.value)}" maxlength="120"></label>
-        <label>اختيارات مفصولة بفاصلة<input data-field="options" class="input" value="${v((cfg.options || []).join(', '))}"></label>
+        <label>قيمة ثابتة <small>اتركه فارغاً للسماح بالإدخال</small><input data-field="value" class="input" value="${v(cfg.value)}" maxlength="120"></label>
+        <label>خيارات مفصولة بفاصلة<input data-field="options" class="input" value="${v((cfg.options || []).join(', '))}"></label>
       </div>
       <div class="admin-grid4">
         <label>X <input data-field="x" type="number" class="input" value="${+cfg.x || 0}"></label>
         <label>Y <input data-field="y" type="number" class="input" value="${+cfg.y || 0}"></label>
         <label>حجم الخط <input data-field="fontSize" type="number" class="input" value="${+cfg.fontSize || 50}"></label>
-        <label>السمك <select data-field="fontWeight" class="input"><option value="normal"${cfg.fontWeight === 'normal' ? ' selected' : ''}>normal</option><option value="bold"${cfg.fontWeight !== 'normal' ? ' selected' : ''}>bold</option></select></label>
+        <label>سماكة الخط <select data-field="fontWeight" class="input"><option value="normal"${cfg.fontWeight === 'normal' ? ' selected' : ''}>عادي</option><option value="bold"${cfg.fontWeight !== 'normal' ? ' selected' : ''}>عريض</option></select></label>
       </div>
       <div class="admin-grid2">
         <label>اللون <input data-field="color" type="color" class="input input--color" value="${/^#[0-9a-fA-F]{6}$/.test(cfg.color || '') ? cfg.color : '#FFFFFF'}"></label>
-        <label>المحاذاة <select data-field="align" class="input"><option value="center"${cfg.align === 'center' || !cfg.align ? ' selected' : ''}>center</option><option value="left"${cfg.align === 'left' ? ' selected' : ''}>left</option><option value="right"${cfg.align === 'right' ? ' selected' : ''}>right</option></select></label>
+        <label>المحاذاة <select data-field="align" class="input"><option value="center"${cfg.align === 'center' || !cfg.align ? ' selected' : ''}>وسط</option><option value="left"${cfg.align === 'left' ? ' selected' : ''}>يسار</option><option value="right"${cfg.align === 'right' ? ' selected' : ''}>يمين</option></select></label>
       </div>`;
     div.querySelector('[data-del]').addEventListener('click', () => { div.remove(); markDirty(); refreshLayers(); drawPreview(); });
     div.querySelectorAll('input,select').forEach(inp => {
@@ -288,12 +299,13 @@
       <div class="admin-grid4">
         <label>X<input data-f="x" type="number" class="input" value="${+s.x || 0}"></label>
         <label>Y<input data-f="y" type="number" class="input" value="${+s.y || 0}"></label>
-        <label>W<input data-f="w" type="number" class="input" value="${+s.w || 200}"></label>
-        <label>H<input data-f="h" type="number" class="input" value="${+s.h || 200}"></label>
+        <label>العرض<input data-f="w" type="number" class="input" value="${+s.w || 200}"></label>
+        <label>الارتفاع<input data-f="h" type="number" class="input" value="${+s.h || 200}"></label>
       </div>`;
     if (s.image) d.dataset.url = s.image;
     d.querySelector('[data-del]').addEventListener('click', () => {
       const li = document.querySelector('#layersList [data-id="' + s.id + '"]'); if (li) li.remove();
+      if (selectedLayer === s.id) selectLayer(null);
       d.remove(); markDirty(); drawPreview();
     });
     d.querySelectorAll('[data-f]').forEach(inp => inp.addEventListener('input', () => {
@@ -321,25 +333,69 @@
   }
 
   /* ---------- الطبقات ---------- */
+  let selectedLayer = null;
+
   function defaultLayerOrder(f) {
     return ['photo', 'frame', ...Object.keys(f.text || {}), ...(f.stickers || []).map(s => s.id)];
   }
+  function layerKind(f, id) {
+    if (id === 'photo') return 'photo';
+    if (id === 'frame') return 'frame';
+    if ((f.stickers || []).some(s => s.id === id)) return 'sticker';
+    return 'text';
+  }
+  const LAYER_TYPE = { photo: 'صورة', frame: 'إطار', sticker: 'ملصق', text: 'نص' };
+  const LAYER_ICON = { photo: '🧑', frame: '🖼️', sticker: '⭐', text: 'T' };
+  function layerLabel(f, id) {
+    if (id === 'photo') return 'صورة المستخدم';
+    if (id === 'frame') return 'الإطار';
+    const s = (f.stickers || []).find(x => x.id === id);
+    if (s) return s.name || id;
+    const t = (f.text || {})[id];
+    return t && t.label ? t.label : id;
+  }
+  function layerBounds(f, id) {
+    if (!f) return null;
+    if (id === 'photo') { const a = f.photoArea; return { x: a.x, y: a.y, w: a.width, h: a.height }; }
+    const s = (f.stickers || []).find(x => x.id === id);
+    if (s) return { x: s.x, y: s.y, w: s.w, h: s.h };
+    const t = (f.text || {})[id];
+    if (t) return { x: t.x, y: t.y, w: null, h: null };
+    return null;
+  }
+
   function renderLayers(f) {
     const box = $('layersList'); if (!box) return; box.textContent = '';
     const all = defaultLayerOrder(f);
     const order = (f.layerOrder && f.layerOrder.length ? f.layerOrder : all).filter(id => all.includes(id));
     const full = [...order, ...all.filter(x => !order.includes(x))];
     full.forEach(id => {
-      let type = 'text', label = id;
-      if (id === 'photo') { type = 'photo'; label = 'صورة المستخدم'; }
-      else if (id === 'frame') { type = 'frame'; label = 'الفريم'; }
-      else if ((f.stickers || []).some(s => s.id === id)) { type = 'sticker'; label = (f.stickers.find(s => s.id === id) || {}).name || id; }
+      const type = layerKind(f, id);
+      const hidden = hiddenLayers.includes(id);
+      const locked = lockedLayers.includes(id);
       const div = document.createElement('div');
-      div.className = 'layer-item layer-item--' + type; div.draggable = true; div.dataset.id = id;
-      div.innerHTML = `<span class="layer-item__icon">${type === 'photo' ? '🧑' : type === 'frame' ? '🖼️' : type === 'sticker' ? '⭐' : 'T'}</span><span class="layer-item__name">${esc(label)}</span><span class="layer-item__type">${type}</span><span class="layer-item__actions"><button type="button" data-up aria-label="للأعلى">↑</button><button type="button" data-down aria-label="للأسفل">↓</button></span>`;
+      div.className = 'layer-item layer-item--' + type
+        + (selectedLayer === id ? ' is-selected' : '')
+        + (hidden ? ' is-hidden' : '')
+        + (locked ? ' is-locked' : '');
+      div.draggable = true; div.dataset.id = id;
+      div.innerHTML = `<span class="layer-item__icon">${LAYER_ICON[type]}</span>`
+        + `<span class="layer-item__name">${esc(layerLabel(f, id))}</span>`
+        + `<span class="layer-item__type">${LAYER_TYPE[type]}</span>`
+        + `<span class="layer-item__actions">`
+        + `<button type="button" data-vis title="${hidden ? 'إظهار الطبقة' : 'إخفاء الطبقة'}" aria-label="${hidden ? 'إظهار الطبقة' : 'إخفاء الطبقة'}" aria-pressed="${hidden}">${hidden ? '🚫' : '👁'}</button>`
+        + `<button type="button" data-lock title="${locked ? 'فتح الطبقة' : 'قفل الطبقة'}" aria-label="${locked ? 'فتح الطبقة' : 'قفل الطبقة'}" aria-pressed="${locked}">${locked ? '🔒' : '🔓'}</button>`
+        + `<button type="button" data-up title="للأعلى" aria-label="للأعلى">↑</button>`
+        + `<button type="button" data-down title="للأسفل" aria-label="للأسفل">↓</button>`
+        + `</span>`;
+      div.addEventListener('click', e => { if (e.target.closest('button')) return; selectLayer(id); });
+      div.querySelector('[data-vis]').addEventListener('click', () => toggleLayerHidden(id));
+      div.querySelector('[data-lock]').addEventListener('click', () => toggleLayerLocked(id));
       box.appendChild(div);
     });
     bindLayerDrag();
+    if (selectedLayer && !full.includes(selectedLayer)) selectedLayer = null;
+    renderInspector();
   }
   function bindLayerDrag() {
     const list = $('layersList'); let drag = null;
@@ -356,6 +412,109 @@
   }
   function refreshLayers() { const f = collectForm(true); f.layerOrder = layerOrderFromDOM(); renderLayers(f); }
   const layerOrderFromDOM = () => [...document.querySelectorAll('#layersList .layer-item')].map(x => x.dataset.id);
+
+  function toggleLayerHidden(id) {
+    const i = hiddenLayers.indexOf(id);
+    if (i >= 0) hiddenLayers.splice(i, 1); else hiddenLayers.push(id);
+    markDirty();
+    if (id === selectedLayer) renderInspector();
+    renderLayers(collectForm());
+    drawPreview();
+  }
+  function toggleLayerLocked(id) {
+    const i = lockedLayers.indexOf(id);
+    if (i >= 0) lockedLayers.splice(i, 1); else lockedLayers.push(id);
+    markDirty();
+    if (id === selectedLayer) renderInspector();
+    renderLayers(collectForm());
+  }
+
+  /* ---------- لوجة تحكم الطبقة المحددة ---------- */
+  function selectLayer(id) {
+    selectedLayer = id || null;
+    document.querySelectorAll('#layersList .layer-item').forEach(it =>
+      it.classList.toggle('is-selected', it.dataset.id === selectedLayer));
+    const box = $('layerInspector');
+    if (box) box.hidden = !selectedLayer;
+    renderInspector();
+    drawPreview();
+  }
+  function renderInspector() {
+    if (!selectedLayer || !current) return;
+    const f = collectForm(true); if (!f) return;
+    const id = selectedLayer, kind = layerKind(f, id), b = layerBounds(f, id);
+    if (!b) { selectedLayer = null; if ($('layerInspector')) $('layerInspector').hidden = true; return; }
+    const locked = lockedLayers.includes(id) || kind === 'frame';
+    $('layerInspectorName').textContent = layerLabel(f, id);
+    $('layerInspectorType').textContent = kind === 'photo'
+      ? 'منطقة صورة المستخدم — حرّكها أو غيّر أبعادها بدقة'
+      : kind === 'frame'
+        ? 'صورة الإطار — الطبقة الخلفية، لا تُحرَّك'
+        : kind === 'sticker'
+          ? 'ملصق — حرّك أو غيّر الحجم بدقة'
+          : 'نص — اضبط موضع مركز النص بدقة';
+    const showWH = kind === 'photo' || kind === 'sticker';
+    $('layerWLabel').hidden = !showWH;
+    $('layerHLabel').hidden = !showWH;
+    $('layerX').value = Math.round(b.x);
+    $('layerY').value = Math.round(b.y);
+    if (showWH) { $('layerW').value = Math.round(b.w); $('layerH').value = Math.round(b.h); }
+    ['layerX', 'layerY', 'layerW', 'layerH'].forEach(x => { const el = $(x); if (el) el.disabled = locked; });
+    document.querySelectorAll('#layerInspector .nudge__btn, #layerInspector [data-center]').forEach(btn => { btn.disabled = locked; });
+    const note = $('layerLockNote');
+    if (note) { note.hidden = !locked; note.textContent = kind === 'frame' ? 'طبقة الخلفية ثابتة بطبيعتها.' : 'الطبقة مقفولة — افتحها من أيقونة القفل في القائمة أعلاه.'; }
+  }
+  function writeLayerField(id, field, value) {
+    const f = collectForm(true); if (!f || !id) return false;
+    const v = Math.round(Number(value) || 0);
+    const min = (field === 'w' || field === 'h') ? 5 : -100000;
+    if (id === 'photo') {
+      const map = { x: 'pX', y: 'pY', w: 'pW', h: 'pH' };
+      if (!map[field]) return false;
+      $(map[field]).value = Math.max(min, v); return true;
+    }
+    if ((f.stickers || []).some(s => s.id === id)) {
+      const row = [...document.querySelectorAll('#stickersBox [data-sid]')].find(r => r.dataset.sid === id);
+      const inp = row && row.querySelector('[data-f="' + field + '"]');
+      if (!inp) return false;
+      inp.value = Math.max(min, v); return true;
+    }
+    if (f.text[id]) {
+      if (field !== 'x' && field !== 'y') return false;
+      const row = [...document.querySelectorAll('#textsContainer .text-field')].find(r => r.querySelector('[data-field="key"]').value === id);
+      const inp = row && row.querySelector('[data-field="' + field + '"]');
+      if (!inp) return false;
+      inp.value = v; return true;
+    }
+    return false;
+  }
+  function setLayerField(field, value) {
+    if (!selectedLayer) return;
+    if (writeLayerField(selectedLayer, field, value)) { markDirty(); drawPreview(); updateLinks(); }
+  }
+  function nudgeLayer(dx, dy) {
+    if (!selectedLayer) return;
+    const f = collectForm(true); if (!f) return;
+    if (lockedLayers.includes(selectedLayer) || selectedLayer === 'frame') return;
+    const b = layerBounds(f, selectedLayer); if (!b) return;
+    writeLayerField(selectedLayer, 'x', b.x + dx);
+    writeLayerField(selectedLayer, 'y', b.y + dy);
+    markDirty(); drawPreview(); updateLinks(); renderInspector();
+  }
+  function centerLayer(axis) {
+    if (!selectedLayer) return;
+    const f = collectForm(true); if (!f) return;
+    if (lockedLayers.includes(selectedLayer) || selectedLayer === 'frame') return;
+    const b = layerBounds(f, selectedLayer); if (!b) return;
+    const kind = layerKind(f, selectedLayer);
+    if (kind === 'text') setLayerField(axis, axis === 'x' ? f.canvasWidth / 2 : f.canvasHeight / 2);
+    else setLayerField(axis, axis === 'x' ? (f.canvasWidth - b.w) / 2 : (f.canvasHeight - b.h) / 2);
+    renderInspector();
+  }
+  function nudgeStep() { const el = $('nudgeStep'); return Math.max(1, +(el && el.value) || 10); }
+  function isTypingTarget(el) {
+    return !!el && (el.isContentEditable || /^(INPUT|TEXTAREA|SELECT|OPTION)$/.test(el.tagName));
+  }
 
   /* ======================================================
      جمع بيانات النموذج
@@ -394,6 +553,8 @@
       textColors: colors.length ? colors : ['#FFFFFF'],
       text: base.text, stickers: base.stickers,
       layerOrder: forLayers ? undefined : layerOrderFromDOM(),
+      layerHidden: [...hiddenLayers],
+      layerLocked: [...lockedLayers],
       sortOrder: current.sortOrder || 0
     };
   }
@@ -422,6 +583,7 @@
     ctx.fillStyle = '#e8e6e1'; ctx.fillRect(0, 0, canvas.width, canvas.height);
     const order = layerOrderFromDOM();
     order.forEach(id => {
+      if (hiddenLayers.includes(id)) return;
       if (id === 'photo') {
         ctx.save(); ctx.strokeStyle = '#5E3BFF'; ctx.lineWidth = 2; ctx.setLineDash([6, 4]); ctx.fillStyle = 'rgba(94,59,255,0.22)';
         const a = f.photoArea;
@@ -431,7 +593,7 @@
       } else if (id === 'frame') {
         const im = loadImg(f.image);
         if (im) ctx.drawImage(im, 0, 0, canvas.width, canvas.height);
-        else { ctx.save(); ctx.strokeStyle = '#999'; ctx.setLineDash([8, 6]); ctx.strokeRect(4, 4, canvas.width - 8, canvas.height - 8); ctx.fillStyle = '#777'; ctx.font = '14px Cairo, sans-serif'; ctx.textAlign = 'center'; ctx.fillText('ارفع صورة الفريم', canvas.width / 2, canvas.height / 2); ctx.restore(); }
+        else { ctx.save(); ctx.strokeStyle = '#999'; ctx.setLineDash([8, 6]); ctx.strokeRect(4, 4, canvas.width - 8, canvas.height - 8); ctx.fillStyle = '#777'; ctx.font = '14px Cairo, sans-serif'; ctx.textAlign = 'center'; ctx.fillText('ارفع صورة الإطار', canvas.width / 2, canvas.height / 2); ctx.restore(); }
       } else if (f.stickers.some(s => s.id === id)) {
         const s = f.stickers.find(x => x.id === id); const im = loadImg(s.image);
         if (im) ctx.drawImage(im, s.x * scale, s.y * scale, s.w * scale, s.h * scale);
@@ -443,6 +605,18 @@
         ctx.fillStyle = '#0D1020'; ctx.font = '11px Cairo, sans-serif'; ctx.fillText(id, t.x * scale, t.y * scale - 11); ctx.restore();
       }
     });
+    if (selectedLayer) {
+      const b = layerBounds(f, selectedLayer);
+      if (b) {
+        ctx.save();
+        ctx.strokeStyle = '#FF8A00'; ctx.lineWidth = 3; ctx.setLineDash([8, 5]);
+        if (b.w == null) { ctx.beginPath(); ctx.arc(b.x * scale, b.y * scale, 18, 0, Math.PI * 2); ctx.stroke(); }
+        else ctx.strokeRect(b.x * scale, b.y * scale, Math.max(4, b.w * scale), Math.max(4, b.h * scale));
+        ctx.setLineDash([]); ctx.fillStyle = 'rgba(255,138,0,.14)';
+        if (b.w != null) ctx.fillRect(b.x * scale, b.y * scale, Math.max(4, b.w * scale), Math.max(4, b.h * scale));
+        ctx.restore();
+      }
+    }
   }
 
   function mouseFrame(e) {
@@ -452,31 +626,51 @@
     const yC = (e.clientY - rect.top) * (canvas.height / rect.height);
     return { x: xC / scale, y: yC / scale, xC, yC, scale };
   }
+  function hitTestLayer(f, pos) {
+    const order = layerOrderFromDOM();
+    for (let i = order.length - 1; i >= 0; i--) {
+      const id = order[i];
+      if (id === 'frame' || hiddenLayers.includes(id)) continue;
+      const b = layerBounds(f, id);
+      if (!b) continue;
+      if (layerKind(f, id) === 'text') {
+        if (Math.hypot(pos.x - b.x, pos.y - b.y) < 55) return { id, kind: 'text' };
+      } else if (pos.x >= b.x && pos.x <= b.x + b.w && pos.y >= b.y && pos.y <= b.y + b.h) {
+        return { id, kind: layerKind(f, id) };
+      }
+    }
+    return null;
+  }
   function initCanvasDrag() {
     const canvas = $('adminCanvas');
     canvas.addEventListener('pointerdown', e => {
       if (!current) return;
       const pos = mouseFrame(e), f = collectForm();
-      for (const row of document.querySelectorAll('#textsContainer .text-field')) {
-        const x = +row.querySelector('[data-field="x"]').value, y = +row.querySelector('[data-field="y"]').value;
-        if (Math.hypot(pos.xC - x * pos.scale, pos.yC - y * pos.scale) < 16) { dragTarget = row.querySelector('[data-field="key"]').value; canvas.setPointerCapture(e.pointerId); return; }
-      }
-      const a = f.photoArea;
-      if (pos.x > a.x && pos.x < a.x + a.width && pos.y > a.y && pos.y < a.y + a.height) {
-        dragTarget = 'photo'; dragOffset = { x: pos.x - a.x, y: pos.y - a.y }; canvas.setPointerCapture(e.pointerId);
-      }
+      if (!f) return;
+      const hit = hitTestLayer(f, pos);
+      if (!hit) { selectLayer(null); return; }
+      selectLayer(hit.id);
+      const b = layerBounds(f, hit.id);
+      if (!b || lockedLayers.includes(hit.id) || hit.kind === 'frame') return;
+      dragTarget = hit.id;
+      dragOffset = hit.kind === 'text' ? { x: 0, y: 0 } : { x: pos.x - b.x, y: pos.y - b.y };
+      try { canvas.setPointerCapture(e.pointerId); canvas.style.cursor = 'grabbing'; } catch (_) { }
     });
     canvas.addEventListener('pointermove', e => {
       if (!dragTarget) return;
-      const pos = mouseFrame(e);
-      if (dragTarget === 'photo') { $('pX').value = Math.round(pos.x - dragOffset.x); $('pY').value = Math.round(pos.y - dragOffset.y); }
-      else {
-        const row = [...document.querySelectorAll('#textsContainer .text-field')].find(r => r.querySelector('[data-field="key"]').value === dragTarget);
-        if (row) { row.querySelector('[data-field="x"]').value = Math.round(pos.x); row.querySelector('[data-field="y"]').value = Math.round(pos.y); }
-      }
-      markDirty(); drawPreview();
+      const pos = mouseFrame(e), f = collectForm(); if (!f) return;
+      const kind = layerKind(f, dragTarget);
+      let nx = pos.x - dragOffset.x, ny = pos.y - dragOffset.y;
+      if (kind === 'text') { nx = pos.x; ny = pos.y; }
+      writeLayerField(dragTarget, 'x', nx);
+      writeLayerField(dragTarget, 'y', ny);
+      markDirty(); drawPreview(); updateLinks(); renderInspector();
     });
-    const end = () => { if (dragTarget) updateLinks(); dragTarget = null; };
+    const end = () => {
+      if (dragTarget) { updateLinks(); renderInspector(); }
+      dragTarget = null;
+      try { canvas.style.cursor = 'crosshair'; } catch (_) { }
+    };
     canvas.addEventListener('pointerup', end); canvas.addEventListener('pointercancel', end);
   }
 
@@ -548,6 +742,7 @@
         $('pX').value = prep.photoArea.x; $('pY').value = prep.photoArea.y; $('pW').value = prep.photoArea.width; $('pH').value = prep.photoArea.height;
         toast('تم ضبط منطقة الصورة من طبقة «' + (prep.photoName || '') + '».', 'success');
       }
+      if (prep.note) toast(prep.note, 'info', 8000);
       markDirty(); updateImageInfo(); drawPreview();
     } catch (err) { toast(errText(err), 'error'); e.target.value = ''; }
   }
@@ -556,10 +751,10 @@
      حفظ / نسخ / حذف
      ====================================================== */
   function validate(f) {
-    if (!f.name) return 'اسم الفريم مطلوب.';
+    if (!f.name) return 'اسم الإطار مطلوب.';
     if (!ID_RE.test(f.id)) return 'المعرّف (id): حروف إنجليزية صغيرة وأرقام وشرطة فقط (2–63 حرفاً).';
-    if (frames.some(x => x.id === f.id && (isDraft || x.id !== current.id))) return 'المعرّف مستخدم لفريم آخر.';
-    if (!pending && !current.imagePath) return 'ارفع صورة الفريم أولاً.';
+    if (frames.some(x => x.id === f.id && (isDraft || x.id !== current.id))) return 'المعرّف مستخدم لإطار آخر.';
+    if (!pending && !current.imagePath) return 'ارفع صورة الإطار أولاً.';
     const keys = Object.keys(f.text);
     if (keys.some(k => !KEY_RE.test(k))) return 'مفاتيح النصوص: حروف إنجليزية وأرقام و _ - فقط.';
     if (document.querySelectorAll('#textsContainer [data-field="key"]').length !== keys.length) return 'مفتاح نص مكرر أو فارغ.';
@@ -593,12 +788,12 @@
     if (drop.size) Api.removeImages([...drop]).catch(() => { });
     if (pending) { URL.revokeObjectURL(pending.url); pending = null; }
     dirty = false; btn.disabled = false;
-    toast('تم الحفظ — الفريم ' + (f.visibility === 'public' ? 'ظاهر للجميع' : 'خاص (برابطه السري فقط)'), 'success');
+    toast('تم الحفظ — الإطار ' + (f.visibility === 'public' ? 'ظاهر للجميع' : 'خاص (برابطه السري فقط)'), 'success');
     await loadFrames(f.id);
   }
 
   async function duplicateFrame() {
-    if (!current || isDraft) { toast('احفظ الفريم أولاً ثم انسخه.', 'info'); return; }
+    if (!current || isDraft) { toast('احفظ الإطار أولاً ثم انسخه.', 'info'); return; }
     if (dirty && !confirm('سيتم نسخ النسخة المحفوظة (بدون تعديلاتك الحالية). متابعة؟')) return;
     const btn = $('btnDuplicate'); btn.disabled = true;
     const copies = [];
@@ -621,8 +816,8 @@
 
   async function deleteFrame() {
     if (!current) return;
-    if (isDraft) { if (confirm('تجاهل هذا الفريم الجديد؟')) { dirty = false; await loadFrames(); } return; }
-    if (!confirm('حذف الفريم "' + current.name + '" نهائياً مع صوره؟ لا يمكن التراجع.')) return;
+    if (isDraft) { if (confirm('تجاهل هذا الإطار الجديد؟')) { dirty = false; await loadFrames(); } return; }
+    if (!confirm('حذف الإطار "' + current.name + '" نهائياً مع صوره؟ لا يمكن التراجع.')) return;
     const paths = [current.imagePath, ...(current.stickers || []).map(s => s.imagePath)];
     try { await Api.deleteFrame(current.id); } catch (err) { toast('تعذّر الحذف: ' + errText(err), 'error'); return; }
     Api.removeImages(paths).catch(() => { });
@@ -630,14 +825,14 @@
   }
 
   function newFrame() {
-    if (dirty && !confirm('لديك تعديلات غير محفوظة. تجاهلها وإنشاء فريم جديد؟')) return;
+    if (dirty && !confirm('لديك تعديلات غير محفوظة. تجاهلها وإنشاء إطار جديد؟')) return;
     const id = 'frame-' + Date.now().toString(36).slice(-5);
     current = {
-      id, name: 'فريم جديد', visibility: 'public', accessKey: null, imagePath: '', image: '',
+      id, name: 'إطار جديد', visibility: 'public', accessKey: null, imagePath: '', image: '',
       canvasWidth: 2500, canvasHeight: 2500, photoArea: { x: 877, y: 881, width: 748, height: 748 },
       textColors: ['#FFFFFF', '#FBAE42'],
       text: { name: { x: 1250, y: 1873, fontSize: 72, fontWeight: 'bold', color: '#FFFFFF', align: 'center', label: 'الاسم', placeholder: 'أدخل اسمك' } },
-      stickers: [], layerOrder: undefined, sortOrder: 0
+      stickers: [], layerOrder: undefined, layerHidden: [], layerLocked: [], sortOrder: 0
     };
     isDraft = true; pending = null; dirty = true;
     $('emptyState').hidden = true; $('frameForm').hidden = false;
@@ -725,6 +920,12 @@
     const file = e.target.files[0];
     const pv = $('heroPreview');
     if (!file) return;
+    const ext = (file.name.split('.').pop() || '').toLowerCase();
+    if (ext === 'psd' || ext === 'psb' || ext === 'tif' || ext === 'tiff') {
+      if (pv) { pv.removeAttribute('src'); pv.hidden = true; }
+      toast('ملف بطبقات — ستظهر المعاينة بعد الحفظ والتحويل إلى PNG.', 'info', 6000);
+      return;
+    }
     if (pv) { pv.src = URL.createObjectURL(file); pv.hidden = false; }
   }
 
@@ -735,11 +936,12 @@
     try {
       const prep = await prepareImage(file);
       if (!prep) return;
+      if (prep.note) toast(prep.note, 'info', 8000);
       if (prep.size > 45 * 1024 * 1024) throw new Error('صورة الواجهة كبيرة جداً (الحد 45MB) — اختر صورة أصغر.');
       const path = await Api.uploadImage(prep.blob, prep.ext);
       const old = hero.image;
-      await Api.saveHero({ image: path, alt: 'فريم من FRAMEO' });
-      hero = { image: path, alt: 'فريم من FRAMEO' };
+      await Api.saveHero({ image: path, alt: 'إطار من FRAMEO' });
+      hero = { image: path, alt: 'إطار من FRAMEO' };
       if (old && old !== path) Api.removeImages([old]).catch(() => { });
       show('heroModal', false);
       renderHeroBox();
@@ -814,6 +1016,31 @@
       refreshLayers(); markDirty(); drawPreview();
     });
     $('btnResetLayers').addEventListener('click', () => { const f = collectForm(true); renderLayers(f); markDirty(); drawPreview(); toast('تمت إعادة ضبط الترتيب', 'info'); });
+    $('btnShowAllLayers').addEventListener('click', () => { hiddenLayers = []; markDirty(); renderLayers(collectForm()); drawPreview(); });
+    $('btnUnlockAllLayers').addEventListener('click', () => { lockedLayers = []; markDirty(); renderLayers(collectForm()); renderInspector(); });
+    const search = $('framesSearch');
+    if (search) search.addEventListener('input', () => { searchQuery = search.value; renderList(); });
+    if ($('btnLayerDeselect')) $('btnLayerDeselect').addEventListener('click', () => selectLayer(null));
+    [['layerX', 'x'], ['layerY', 'y'], ['layerW', 'w'], ['layerH', 'h']].forEach(([id, field]) => {
+      const el = $(id); if (el) el.addEventListener('input', () => setLayerField(field, el.value));
+    });
+    document.querySelectorAll('#layerInspector [data-nudge]').forEach(b => b.addEventListener('click', () => {
+      const s = nudgeStep();
+      const d = { up: [0, -s], down: [0, s], left: [-s, 0], right: [s, 0] }[b.dataset.nudge];
+      if (d) nudgeLayer(d[0], d[1]);
+    }));
+    document.querySelectorAll('#layerInspector [data-center]').forEach(b => b.addEventListener('click', () => centerLayer(b.dataset.center)));
+    document.addEventListener('keydown', e => {
+      if (!selectedLayer || isTypingTarget(document.activeElement)) return;
+      if (e.key === 'Escape') { selectLayer(null); return; }
+      const s = nudgeStep() * (e.shiftKey ? 10 : 1);
+      const d = { ArrowUp: [0, -s], ArrowDown: [0, s], ArrowLeft: [-s, 0], ArrowRight: [s, 0] }[e.key];
+      if (!d) return;
+      e.preventDefault(); nudgeLayer(d[0], d[1]);
+    });
+    $('frameForm').addEventListener('input', e => {
+      if (selectedLayer && !e.target.closest('#layerInspector')) renderInspector();
+    });
     document.querySelectorAll('.filter-btn').forEach(b => b.addEventListener('click', () => {
       document.querySelectorAll('.filter-btn').forEach(x => x.classList.remove('active')); b.classList.add('active'); filter = b.dataset.filter; renderList();
     }));

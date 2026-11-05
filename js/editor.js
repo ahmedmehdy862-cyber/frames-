@@ -171,8 +171,10 @@ const Editor = (() => {
         originY: 'center',
         scaleX: sc,
         scaleY: sc,
-        selectable: true,
-        hasControls: true,
+        selectable: !isLayerLocked('photo'),
+        evented: !isLayerLocked('photo'),
+        visible: !isLayerHidden('photo'),
+        hasControls: !isLayerLocked('photo'),
         hasBorders: true,
         borderColor: '#5E3BFF',
         cornerColor: '#FF8A00',
@@ -210,7 +212,7 @@ const Editor = (() => {
     const src = frame.image;
     fabric.Image.fromURL(src, (img, isError) => {
       if (isError || !img || !img.width) {
-        App.showToast('تعذّر تحميل صورة الفريم', 'error', 5000);
+        App.showToast('تعذّر تحميل صورة الإطار', 'error', 5000);
         return;
       }
       if (frameImage) canvas.remove(frameImage);
@@ -241,7 +243,7 @@ const Editor = (() => {
         frameConfig.stickers.forEach(st=>{
           fabric.Image.fromURL(st.image, (sim, sErr)=>{
             if (sErr || !sim || !sim.width) return;
-            sim.set({ left: st.x, top: st.y, scaleX: st.w / sim.width, scaleY: st.h / sim.height, selectable:true, hasControls:true, hasBorders:true, borderColor:'#5E3BFF', cornerColor:'#FF8A00', _layerId: st.id });
+            sim.set({ left: st.x, top: st.y, scaleX: st.w / sim.width, scaleY: st.h / sim.height, selectable: !isLayerLocked(st.id), evented: !isLayerLocked(st.id), visible: !isLayerHidden(st.id), hasControls: !isLayerLocked(st.id), hasBorders: true, borderColor:'#5E3BFF', cornerColor:'#FF8A00', _layerId: st.id });
             stickerObjects[st.id]=sim; canvas.add(sim); restack(); canvas.renderAll(); renderLayersPanel();
           }, { crossOrigin: 'anonymous' });
         });
@@ -276,6 +278,13 @@ const Editor = (() => {
       scaleX: sc, scaleY: sc
     });
     canvas.renderAll();
+  }
+
+  function isLayerHidden(id) {
+    return !!(frameConfig && Array.isArray(frameConfig.layerHidden) && frameConfig.layerHidden.includes(id));
+  }
+  function isLayerLocked(id) {
+    return !!(frameConfig && Array.isArray(frameConfig.layerLocked) && frameConfig.layerLocked.includes(id));
   }
 
   function getLayerOrder(){
@@ -342,8 +351,9 @@ const Editor = (() => {
         fill: st.color,
         textAlign: cfg.align || 'center',
         originX: 'center', originY: 'center',
-        selectable: true, evented: true,
-        hasControls: true, hasBorders: true,
+        selectable: !isLayerLocked(key), evented: !isLayerLocked(key),
+        visible: !isLayerHidden(key),
+        hasControls: !isLayerLocked(key), hasBorders: true,
         borderColor: '#FBAE42',
         cornerColor: '#014976',
         cornerSize: 10,
@@ -556,27 +566,27 @@ const Editor = (() => {
     if(!panel){
       const area = document.getElementById('canvasArea');
       panel = document.createElement('div');
-      panel.id='layersPanel';
-      panel.style.cssText='position:absolute;top:12px;inset-inline-start:12px;background:rgba(13,16,32,0.92);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.15);border-radius:12px;padding:10px;min-width:170px;z-index:30;max-height:70%;overflow:auto';
-      panel.innerHTML='<div style="color:#fff;font-size:12px;font-weight:800;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center"><span>🎚️ الطبقات</span><button id="layersToggle" style="background:none;border:none;color:#8B93A7;cursor:pointer">—</button></div><div id="layersListEd"></div><small style="color:#8B93A7;font-size:10px">الأعلى = في المقدمة — اسحب للترتيب</small>';
+      panel.id='layersPanel'; panel.className='fc-layers';
+      panel.innerHTML='<div class="fc-layers__head"><span>🎚️ الطبقات</span><button type="button" id="layersToggle" class="fc-layers__toggle" aria-label="طي لوحة الطبقات">—</button></div><div id="layersListEd" class="fc-layers__list"></div><small class="fc-layers__hint">الأعلى = في المقدمة · 🚫 مخفية · 🔒 مقفولة</small>';
       area.style.position='relative';
       area.appendChild(panel);
-      if (window.innerWidth <= 768) panel.querySelector('#layersListEd').style.display = 'none';
-      panel.querySelector('#layersToggle').addEventListener('click',()=>{ const l=panel.querySelector('#layersListEd'); l.style.display=l.style.display==='none'?'':'none'; });
+      panel.querySelector('#layersToggle').addEventListener('click',()=>panel.classList.toggle('is-collapsed'));
     }
     const list=panel.querySelector('#layersListEd');
     const order=getLayerOrder();
     list.innerHTML='';
     // show from top to bottom for intuitive editing
-    [...order].reverse().forEach((id,i)=>{
+    [...order].reverse().forEach(id=>{
       let label=id, icon='T';
-      if(id==='photo'){ label='الصورة'; icon='🖼'; }
-      else if(id==='frame'){ label='الفريم'; icon='🖼️'; }
-      else if(id.startsWith('sticker')){ const s=frameConfig.stickers?.find(x=>x.id===id); label=s? s.name : id; icon='⭐'; }
+      if(id==='photo'){ label='الصورة'; icon='🧑'; }
+      else if(id==='frame'){ label='الإطار'; icon='🖼️'; }
+      else if((frameConfig.stickers||[]).some(x=>x.id===id)){ const s=frameConfig.stickers.find(x=>x.id===id); label=s? s.name : id; icon='⭐'; }
+      else if(frameConfig.text && frameConfig.text[id] && frameConfig.text[id].label){ label=frameConfig.text[id].label; }
+      const hidden=isLayerHidden(id), locked=isLayerLocked(id);
       const row=document.createElement('div');
-      row.style.cssText='display:flex;align-items:center;gap:6px;padding:6px 8px;background:rgba(255,255,255,0.08);border-radius:8px;margin-bottom:4px;color:#fff;font-size:12px;cursor:grab';
-      row.draggable=true; row.dataset.id=id;
-      row.innerHTML=`<span>${icon}</span><span style="flex:1">${label}</span><span style="display:flex;gap:2px"><button data-up style="background:#fff;color:#0D1020;border:none;border-radius:4px;padding:2px 6px;cursor:pointer">↑</button><button data-down style="background:#fff;color:#0D1020;border:none;border-radius:4px;padding:2px 6px;cursor:pointer">↓</button></span>`;
+      row.className='fc-layer'+(hidden?' is-hidden':'')+(locked?' is-locked':'')+(id==='frame'?' is-fixed':'');
+      row.draggable=!hidden; row.dataset.id=id;
+      row.innerHTML=`<span class="fc-layer__icon">${icon}</span><span class="fc-layer__name">${label}</span><span class="fc-layer__tags">${hidden?'<i title="مخفية">🚫</i>':''}${locked?'<i title="مقفولة">🔒</i>':''}</span><span class="fc-layer__move"><button type="button" data-up aria-label="للأعلى">↑</button><button type="button" data-down aria-label="للأسفل">↓</button></span>`;
       list.appendChild(row);
     });
     // drag
@@ -615,8 +625,8 @@ const Editor = (() => {
     if (requestedId && !initial) {
       App.showToast(
         FramesManager.wasPrivateDenied() || params.get('key')
-          ? 'هذا الفريم خاص أو المفتاح غير صحيح — تحتاج الرابط الصحيح من الإدارة'
-          : 'هذا الفريم غير متاح',
+          ? 'هذا الإطار خاص أو المفتاح غير صحيح — تحتاج الرابط الصحيح من الإدارة'
+          : 'هذا الإطار غير متاح',
         'error', 6000);
     }
     if (!initial) initial = visible[0] || null;

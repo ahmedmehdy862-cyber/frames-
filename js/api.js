@@ -96,7 +96,9 @@ const Api = (() => {
         x: num(s.x, 0, -W, W * 2), y: num(s.y, 0, -H, H * 2),
         w: num(s.w, 200, 5, W * 2), h: num(s.h, 200, 5, H * 2)
       })).filter(s => s.id && s.image) : [],
-      layerOrder: Array.isArray(c.layerOrder) ? c.layerOrder.map(String) : undefined
+      layerOrder: Array.isArray(c.layerOrder) ? c.layerOrder.map(String) : undefined,
+      layerHidden: Array.isArray(c.layerHidden) ? c.layerHidden.map(String) : undefined,
+      layerLocked: Array.isArray(c.layerLocked) ? c.layerLocked.map(String) : undefined
     };
   }
 
@@ -113,7 +115,9 @@ const Api = (() => {
         canvasWidth: f.canvasWidth, canvasHeight: f.canvasHeight,
         photoArea: f.photoArea, textColors: f.textColors, text: f.text,
         stickers: (f.stickers || []).map(s => ({ id: s.id, name: s.name, image: s.imagePath, x: s.x, y: s.y, w: s.w, h: s.h })),
-        layerOrder: f.layerOrder
+        layerOrder: f.layerOrder,
+        layerHidden: f.layerHidden || [],
+        layerLocked: f.layerLocked || []
       }
     };
     return row;

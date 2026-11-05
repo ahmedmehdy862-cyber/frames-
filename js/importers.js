@@ -3,7 +3,7 @@
    المتصفح لا يفتح هذه الصيغ، فنحوّلها داخل متصفح الأدمن إلى PNG ثم يُرفع الـ PNG فقط
    (التخزين والصلاحيات لم تتغيّر). المكتبات تُحمَّل عند الحاجة فقط:
      PSD  ← ag-psd   (يدعم RGB 8-bit فقط؛ لا CMYK ولا 16-bit ولا PSB)
-     TIFF ← UTIF.js  (الصفحة الأولى = الصورة المدمجة، أو اختيار صفحة)
+     TIFF ← UTIF.js  (الصفحة المدمجة، أو الطبقات المحفوظة من Photoshop)
    ======================================== */
 'use strict';
 
@@ -164,9 +164,11 @@ const Importers = (() => {
     return cv;
   }
 
-  function pickPsd(psd, list, fileName) {
+  function pickPsd(psd, list, fileName, opts) {
+    opts = opts || {};
+    const srcLabel = opts.source || 'PSD';
     return new Promise(resolve => {
-      const sh = shell('استيراد ملف PSD', fileName + ' — ' + psd.width + '×' + psd.height);
+      const sh = shell('استيراد ملف ' + srcLabel + (opts.layered ? ' — طبقات' : ''), fileName + ' — ' + psd.width + '×' + psd.height);
       const left = el('div', 'imp-left'); const right = el('div', 'imp-right');
       const prev = mk(10, 10); prev.className = 'imp-preview'; left.append(prev);
       const warn = el('p', 'imp-warn'); left.append(warn);
@@ -193,7 +195,7 @@ const Importers = (() => {
       const phHead = el('label', 'radio imp-ph'); const phNone = document.createElement('input'); phNone.type = 'radio'; phNone.name = 'impph'; phNone.value = ''; phNone.checked = ph == null;
       phNone.addEventListener('change', () => { ph = null; render(); });
       phHead.append(phNone, document.createTextNode(' لا توجد طبقة «مكان الصورة»')); right.append(phHead);
-      right.append(el('small', 'imp-hint', 'ظلّل طبقة «مكان الصورة» (اللي هتتحط فيها صورة المستخدم) لتُستخدم مقاسها كمنطقة الصورة، وتُستبعد من الفريم.'));
+      right.append(el('small', 'imp-hint', 'ظلّل طبقة «مكان الصورة» التي ستُوضع فيها صورة المستخدم لتُستخدم أبعادها كمنطقة الصورة، وتُستبعد من الإطار.'));
 
       const rows = el('div', 'imp-rows'); right.append(rows);
       list.forEach(n => {
@@ -243,19 +245,24 @@ const Importers = (() => {
     });
   }
 
-  async function importPsd(file, buf) {
+  async function parsePsd(buf) {
     await ensure('psd');
     let psd;
     try { psd = window.agPsd.readPsd(buf, { skipThumbnail: true }); }
     catch (e) {
       const m = String((e && e.message) || e);
-      if (/color mode|colorMode|unsupported|not supported/i.test(m)) fail('وضع ألوان الملف غير مدعوم. احفظ الـ PSD بوضع RGB و8-bit ثم أعد المحاولة. (' + m + ')');
-      fail('تعذّر قراءة ملف PSD: ' + m);
+      if (/color mode|colorMode|unsupported|not supported/i.test(m)) fail('وضع ألوان الملف غير مدعوم. احفظ الملف بوضع RGB و8-bit ثم أعد المحاولة. (' + m + ')');
+      fail('تعذّر قراءة بيانات الطبقات: ' + m);
     }
-    if (!psd || !psd.width || !psd.height) fail('ملف PSD فارغ أو تالف.');
+    if (!psd || !psd.width || !psd.height) fail('الملف فارغ أو تالف.');
     if (psd.width * psd.height > MAX_PIXELS) fail('أبعاد الملف كبيرة جداً (' + psd.width + '×' + psd.height + '). قلّلها إلى أقل من 120 ميجابكسل.');
+    return psd;
+  }
+
+  async function importPsd(file, buf) {
+    const psd = await parsePsd(buf);
     const list = []; annotate(psd.children, 0, list, null);
-    const picked = await pickPsd(psd, list, file.name);
+    const picked = await pickPsd(psd, list, file.name, { source: 'PSD' });
     if (!picked) return null;
     if (picked.error) fail('تعذّر تركيب الطبقات: ' + (picked.error.message || picked.error));
     const png = await toPng(picked.canvas);
@@ -269,6 +276,20 @@ const Importers = (() => {
   /* ======================================================
      TIFF
      ====================================================== */
+  // Photoshop يحفظ طبقات TIFF داخل الوسم 37724 (ImageSourceData):
+  // «Adobe Photoshop Document Data Block» ثم ملف PSD كامل يبدأ بـ 8BPS.
+  function embeddedPsd(ifd) {
+    const d = ifd && ifd.t37724;
+    if (!d || !d.length || d.length < 40) return null;
+    const limit = Math.min(64, d.length - 4);
+    for (let i = 0; i <= limit; i++) {
+      if (d[i] === 0x38 && d[i + 1] === 0x42 && d[i + 2] === 0x50 && d[i + 3] === 0x53) {
+        return d.buffer.slice(d.byteOffset + i, d.byteOffset + d.byteLength);
+      }
+    }
+    return null;
+  }
+
   function tiffToCanvas(buf, ifd) {
     window.UTIF.decodeImage(buf, ifd);
     if (!ifd.width || !ifd.height) fail('تعذّر فك ضغط صفحة TIFF (الضغط أو نظام الألوان غير مدعوم). جرّب حفظه بدون ضغط أو كـ PNG/PSD.');
@@ -285,7 +306,7 @@ const Importers = (() => {
       const left = el('div', 'imp-left'); const right = el('div', 'imp-right');
       const prev = mk(10, 10); prev.className = 'imp-preview'; left.append(prev);
       sh.body.append(left, right);
-      right.append(el('small', 'imp-hint', 'اختر الصفحة المطلوبة. ملاحظة: TIFF المحفوظ من Photoshop بطبقات يُستورد كصورة مدمجة، والطبقات الداخلية غير متاحة — احفظه PSD لو محتاج طبقات.'));
+      right.append(el('small', 'imp-hint', 'اختر الصفحة المطلوبة. الصفحة الأولى هي الصورة المدمجة عادةً، وباقي الصفحات قد تكون نسخاً أو صفحات منفصلة.'));
       let sel = 0; const cache = {};
       const show = i => {
         sel = i;
@@ -310,6 +331,32 @@ const Importers = (() => {
     try { ifds = window.UTIF.decode(buf); } catch (e) { fail('تعذّر قراءة ملف TIFF: ' + ((e && e.message) || e)); }
     const pages = (ifds || []).filter(i => i && i.t256 && i.t257 && i.t256[0] > 16 && i.t257[0] > 16);   // نتجاهل المصغّرات الصغيرة جداً
     if (!pages.length) fail('لم أجد صورة قابلة للاستيراد داخل ملف TIFF.');
+
+    // 1) الطبقات إن وُجدت (TIFF المحفوظ من Photoshop)
+    let note = '';
+    const layered = pages.reduce((found, p) => found || embeddedPsd(p), null);
+    if (layered) {
+      let psd = null;
+      try { psd = await parsePsd(layered); }
+      catch (e) {
+        note = 'تعذّر قراءة طبقات TIFF، وتم استيراد الصورة المدمجة بدلاً منها. (' + ((e && e.message) || e) + ')';
+        console.warn('TIFF layers:', e);
+      }
+      if (psd) {
+        const list = []; annotate(psd.children, 0, list, null);
+        const picked = await pickPsd(psd, list, file.name, { source: 'TIFF', layered: true });
+        if (!picked) return null;
+        if (picked.error) fail('تعذّر تركيب طبقات TIFF: ' + (picked.error.message || picked.error));
+        const png = await toPng(picked.canvas);
+        const photoArea = picked.photo ? {
+          x: Math.round(picked.photo.x * png.scale), y: Math.round(picked.photo.y * png.scale),
+          width: Math.round(picked.photo.width * png.scale), height: Math.round(picked.photo.height * png.scale)
+        } : null;
+        return { blob: png.blob, ext: 'png', w: png.w, h: png.h, size: png.blob.size, photoArea, photoName: picked.photo ? picked.photo.name : '', source: 'TIFF (طبقات)' };
+      }
+    }
+
+    // 2) الصورة المدمجة / اختيار صفحة
     let canvas;
     if (pages.length === 1) canvas = tiffToCanvas(buf, pages[0]);
     else {
@@ -319,7 +366,7 @@ const Importers = (() => {
       canvas = r.canvas;
     }
     const png = await toPng(canvas);
-    return { blob: png.blob, ext: 'png', w: png.w, h: png.h, size: png.blob.size, photoArea: null, source: 'TIFF' };
+    return { blob: png.blob, ext: 'png', w: png.w, h: png.h, size: png.blob.size, photoArea: null, source: note ? 'TIFF (مدمج)' : 'TIFF', note };
   }
 
   /* ======================================================

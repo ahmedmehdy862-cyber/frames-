@@ -6,7 +6,7 @@
    ======================================== */
 'use strict';
 
-const VERSION = 'frameo-v1.0.1';
+const VERSION = 'frameo-v1.0.3';
 const CORE = 'frameo-core-' + VERSION;
 const RUNTIME = 'frameo-runtime-' + VERSION;
 
@@ -17,9 +17,17 @@ const PRECACHE = [
   './about.html',
   './manifest.webmanifest',
   './css/frameo.css',
+  './css/fonts.css',
   './css/style.css',
   './css/editor.css',
   './css/responsive.css',
+  './assets/fonts/cairo-arabic.woff2',
+  './assets/fonts/cairo-latin.woff2',
+  './assets/fonts/poppins-latin-500.woff2',
+  './assets/fonts/poppins-latin-600.woff2',
+  './assets/fonts/poppins-latin-700.woff2',
+  './assets/fonts/poppins-latin-800.woff2',
+  './assets/fonts/poppins-latin-900.woff2',
   './js/config.js',
   './js/app.js',
   './js/home.js',

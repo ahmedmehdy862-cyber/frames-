@@ -4,7 +4,7 @@
    الألوان: بنفسجي → وردي → برتقالي → أصفر (من دليل الهوية)
    ========================================================================== */
 
-@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=Poppins:wght@500;600;700;800&display=swap');
+@import url('fonts.css');
 
 :root {
   --fx-bg: #0a0d1c;
@@ -40,6 +40,8 @@ body.fx {
   background: var(--fx-bg);
   color: var(--fx-text);
   line-height: 1.8;
+  text-align: start;
+  text-wrap: pretty;
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
   --header-h: 76px;
@@ -47,8 +49,8 @@ body.fx {
 .fx a { color: inherit; text-decoration: none; }
 .fx img { max-width: 100%; display: block; }
 .fx ul { list-style: none; margin: 0; padding: 0; }
-.fx h1, .fx h2, .fx h3 { margin: 0; font-family: var(--fx-font); font-weight: 900; line-height: 1.25; }
-.fx p { margin: 0; }
+.fx h1, .fx h2, .fx h3 { margin: 0; font-family: var(--fx-font); font-weight: 900; line-height: 1.4; letter-spacing: 0; text-wrap: balance; }
+.fx p { margin: 0; text-wrap: pretty; }
 .fx button { font-family: inherit; cursor: pointer; border: 0; background: none; color: inherit; }
 .sr-only { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
 .container { width: 100%; max-width: 1240px; margin-inline: auto; padding-inline: 24px; }
@@ -155,7 +157,7 @@ body.fx {
 .splash__logo { display: flex; align-items: center; gap: clamp(14px, 3vw, 26px); direction: ltr; }
 .splash__logo .fx-lockup__mark { width: clamp(64px, 14vw, 110px); animation: splashMark 1.1s var(--fx-ease-spring) .15s both; }
 .splash__logo .fx-lockup__word { height: clamp(26px, 6vw, 46px); animation: splashWord 1.1s var(--fx-ease) .55s both; }
-.splash__tag { font-weight: 800; letter-spacing: .06em; color: var(--fx-muted); font-size: clamp(.9rem, 2.4vw, 1.1rem); animation: fxRise .8s var(--fx-ease) 1.1s both; }
+.splash__tag { font-weight: 800; letter-spacing: 0; color: var(--fx-muted); font-size: clamp(.9rem, 2.4vw, 1.1rem); animation: fxRise .8s var(--fx-ease) 1.1s both; }
 .splash__bar { width: min(240px, 50vw); height: 3px; border-radius: 3px; background: var(--fx-line); overflow: hidden; }
 .splash__bar::after { content: ''; display: block; height: 100%; width: 100%; background: var(--fx-grad); transform-origin: right; animation: splashBar 1.9s var(--fx-ease) .1s both; }
 @keyframes splashMark { from { opacity: 0; transform: scale(.3) rotate(-90deg); filter: blur(10px); } to { opacity: 1; transform: none; filter: none; } }
@@ -197,7 +199,7 @@ body.fx {
 }
 .fx-tag i { width: 8px; height: 8px; border-radius: 50%; background: var(--fx-grad); box-shadow: 0 0 12px var(--fx-pink); animation: fxPulse 2s ease-in-out infinite; }
 
-.fx-hero h1 { font-size: clamp(2.3rem, 5.4vw, 4.1rem); letter-spacing: -.01em; }
+.fx-hero h1 { font-size: clamp(2.3rem, 5.4vw, 4.1rem); letter-spacing: 0; line-height: 1.35; }
 .fx-grad-text { background: var(--fx-grad-wide); background-size: 220% 100%; -webkit-background-clip: text; background-clip: text; color: transparent; animation: fxFlow 7s linear infinite; }
 .fx-hero__sub { margin-top: 22px; max-width: 520px; color: var(--fx-muted); font-size: 1.08rem; line-height: 2; }
 .fx-hero__cta { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 32px; }
@@ -243,7 +245,7 @@ body.fx {
 /* ---------- Sections ---------- */
 .fx-section { position: relative; padding: 110px 0; }
 .fx-head { max-width: 640px; margin-bottom: 56px; }
-.fx-over { display: inline-flex; align-items: center; gap: 10px; font-weight: 800; font-size: .85rem; letter-spacing: .08em; color: var(--fx-pink); margin-bottom: 12px; }
+.fx-over { display: inline-flex; align-items: center; gap: 10px; font-weight: 800; font-size: .85rem; letter-spacing: 0; color: var(--fx-pink); margin-bottom: 12px; }
 .fx-over::before { content: ''; width: 28px; height: 3px; border-radius: 3px; background: var(--fx-grad); }
 .fx-head h2 { font-size: clamp(1.9rem, 3.8vw, 2.9rem); }
 .fx-head p { margin-top: 16px; color: var(--fx-muted); font-size: 1.05rem; line-height: 2; }

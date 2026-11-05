@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>لوحة التحكم | FRAMEO</title>
   <meta name="robots" content="noindex,nofollow,noarchive">
   <meta name="referrer" content="no-referrer">
@@ -18,13 +18,13 @@
     <div class="gate__card gate__card--wide">
       <div class="gate__brand"><span class="logo__mark"></span><span class="logo__word"></span></div>
       <h2>لوحة التحكم تحتاج ربطاً بالخادم</h2>
-      <p>لتأمين اللوحة بحسابات حقيقية لازم تربط الموقع بمشروع Supabase مجاني:</p>
+      <p>لتأمين اللوحة بحسابات حقيقية، اربط الموقع بمشروع Supabase مجاني:</p>
       <ol class="gate__steps">
         <li>أنشئ مشروعاً على <b dir="ltr">supabase.com</b> ثم شغّل ملف <code dir="ltr">supabase/schema.sql</code> في SQL Editor.</li>
         <li>انسخ <b>Project URL</b> و<b>anon key</b> من Project Settings → API إلى الملف <code dir="ltr">js/config.js</code>.</li>
         <li>أنشئ حساب المالك وانشر دالة <code dir="ltr">admin-users</code> (الخطوات كاملة في <code dir="ltr">SETUP-AR.md</code>).</li>
       </ol>
-      <p class="admin-hint">إلى ذلك الحين لا يوجد دخول للوحة، والموقع العام يعمل من <code dir="ltr">config/frames.json</code>.</p>
+      <p class="admin-hint">حتى ذلك الحين، لا يتوفر دخول إلى اللوحة، ويعمل الموقع العام من <code dir="ltr">config/frames.json</code>.</p>
       <a href="index.html" class="btn btn--ghost">العودة للموقع</a>
     </div>
   </section>
@@ -42,7 +42,7 @@
         <input id="loginPass" type="password" class="input" dir="ltr" autocomplete="current-password" required>
       </label>
       <p id="loginErr" class="gate__err" role="alert" hidden></p>
-      <p class="gate__note">🔐 لأمان أكبر: لا تُحفظ الجلسة — ستُطلب كلمة المرور في كل زيارة أو إعادة تحميل.</p>
+      <p class="gate__note">🔐 لأمان أعلى: لا تُحفظ الجلسة — ستُطلب كلمة المرور في كل زيارة أو إعادة تحميل.</p>
       <button id="loginBtn" type="submit" class="btn btn--amber btn--xl btn--full">دخول</button>
       <a href="index.html" class="gate__back">← العودة للموقع</a>
     </form>
@@ -54,7 +54,7 @@
       <div class="admin-header__inner">
         <a href="index.html" class="logo" aria-label="FRAMEO"><span class="logo__mark"></span><span class="logo__word"></span></a>
         <nav class="tabs" aria-label="أقسام اللوحة">
-          <button type="button" class="tab-btn active" data-tab="frames">الفريمات</button>
+          <button type="button" class="tab-btn active" data-tab="frames">الإطارات</button>
           <button type="button" class="tab-btn" data-tab="accounts" id="tabAccountsBtn" hidden>الحسابات</button>
         </nav>
         <div class="admin-header__actions">
@@ -66,13 +66,14 @@
       </div>
     </header>
 
-    <!-- تبويب الفريمات -->
+    <!-- تبويب الإطارات -->
     <div id="tabFrames" class="admin-layout">
       <aside class="admin-sidebar">
         <div class="admin-sidebar__head">
-          <h3>الفريمات <span id="framesCount">0</span></h3>
-          <button id="btnNewFrame" type="button" class="btn btn--amber btn--sm">+ فريم جديد</button>
+          <h3>الإطارات <span id="framesCount">0</span></h3>
+          <button id="btnNewFrame" type="button" class="btn btn--amber btn--sm">+ إطار جديد</button>
         </div>
+        <input id="framesSearch" type="search" class="input admin-search" placeholder="ابحث بالاسم أو المعرّف…" aria-label="بحث في الإطارات">
         <div class="admin-sidebar__filters">
           <button type="button" class="filter-btn active" data-filter="all">الكل</button>
           <button type="button" class="filter-btn" data-filter="public">عامة</button>
@@ -87,20 +88,20 @@
         </div>
 
         <div id="framesList" class="admin-frames-list"></div>
-        <p class="admin-hint">كل حفظ ينشر فوراً: العامة تظهر لكل الزوار، والخاصة تُفتح برابطها السري فقط.</p>
+        <p class="admin-hint">كل حفظ يُنشر فوراً: الإطارات العامة تظهر لكل الزوار، والخاصة تُفتح عبر رابطها السري فقط.</p>
       </aside>
 
       <main class="admin-main">
         <div id="emptyState" class="admin-empty">
           <div class="admin-empty__icon">🎨</div>
-          <h3>اختر فريماً للتعديل أو أنشئ واحداً جديداً</h3>
-          <p>ارفع صورة الفريم (PNG أو SVG)، حدّد مكان الصورة الشخصية، واضبط النصوص.</p>
+          <h3>اختر إطاراً لتعديله أو أنشئ إطاراً جديداً</h3>
+          <p>ارفع صورة الإطار (PNG أو SVG أو PSD/TIFF)، حدّد منطقة الصورة الشخصية، واضبط النصوص.</p>
         </div>
 
         <form id="frameForm" class="admin-form" hidden>
           <div class="admin-preview-card">
             <h4 id="frameTitle">معاينة</h4>
-            <small>اسحب نقاط النصوص ومنطقة الصورة لتغيير أماكنها</small>
+            <small>اسحب نقاط النصوص ومنطقة الصورة لتعديل مواضعها</small>
             <div class="admin-canvas-wrap"><canvas id="adminCanvas" width="520" height="520"></canvas></div>
             <div class="admin-preview-legend">
               <span><i style="background:rgba(94,59,255,.45);border:1px dashed #5E3BFF"></i> منطقة الصورة</span>
@@ -111,27 +112,27 @@
           <div class="admin-card">
             <h3 class="admin-card__title">البيانات الأساسية</h3>
             <div class="admin-grid2">
-              <label>اسم الفريم<input type="text" id="fName" class="input" placeholder="مثال: تكريم الذهب" maxlength="120"></label>
+              <label>اسم الإطار<input type="text" id="fName" class="input" placeholder="مثال: تكريم الذهب" maxlength="120"></label>
               <label>المعرّف (id) — إنجليزي بدون مسافات<input type="text" id="fId" class="input" placeholder="midnight-gold" dir="ltr" maxlength="63"></label>
             </div>
             <div class="admin-grid2">
-              <label>عرض الكانفاس<input type="number" id="fW" class="input" value="2500" min="100" max="10000"></label>
-              <label>ارتفاع الكانفاس<input type="number" id="fH" class="input" value="2500" min="100" max="10000"></label>
+              <label>عرض اللوحة<input type="number" id="fW" class="input" value="2500" min="100" max="10000"></label>
+              <label>ارتفاع اللوحة<input type="number" id="fH" class="input" value="2500" min="100" max="10000"></label>
             </div>
-            <label>صورة الفريم (PNG شفاف أو SVG أو WEBP أو PSD/TIFF بطبقات)
+            <label>صورة الإطار (PNG شفاف أو SVG أو WEBP أو PSD/TIFF بطبقات)
               <input type="file" id="fImageFile" class="input" accept=".png,.svg,.webp,.jpg,.jpeg,.psd,.tif,.tiff,image/png,image/svg+xml,image/webp,image/jpeg">
               <small id="imgInfo"></small>
             </label>
             <button type="button" id="btnFitCanvas" class="btn btn--ghost btn--sm" hidden>اضبط الكانفاس على أبعاد الصورة</button>
-            <div id="imagePreview" class="img-preview" hidden><img alt="معاينة صورة الفريم"></div>
+            <div id="imagePreview" class="img-preview" hidden><img alt="معاينة صورة الإطار"></div>
 
             <div class="admin-grid4">
-              <label>Photo X <input type="number" id="pX" class="input"></label>
-              <label>Photo Y <input type="number" id="pY" class="input"></label>
-              <label>Photo W <input type="number" id="pW" class="input"></label>
-              <label>Photo H <input type="number" id="pH" class="input"></label>
+              <label>موضع الصورة X <input type="number" id="pX" class="input"></label>
+              <label>موضع الصورة Y <input type="number" id="pY" class="input"></label>
+              <label>عرض الصورة <input type="number" id="pW" class="input"></label>
+              <label>ارتفاع الصورة <input type="number" id="pH" class="input"></label>
             </div>
-            <small>منطقة الصورة الشخصية داخل الفريم — يمكنك سحبها في المعاينة</small>
+            <small>منطقة الصورة الشخصية داخل الإطار — يمكنك سحبها في المعاينة</small>
             <label style="margin-top:12px">ألوان النصوص المتاحة للزائر (مفصولة بفاصلة)
               <input type="text" id="fColors" class="input" placeholder="#FFFFFF, #FBAE42" dir="ltr">
             </label>
@@ -156,17 +157,56 @@
               <button type="button" id="btnCopyPrivate" class="btn btn--sm btn--amber">نسخ الرابط</button>
             </div>
             <div id="publicLinkBox" style="margin-top:12px">
-              <strong>رابط الفريم:</strong>
+              <strong>رابط الإطار:</strong>
               <div id="publicLink" class="link-box" dir="ltr"></div>
               <button type="button" id="btnCopyPublic" class="btn btn--sm btn--amber">نسخ الرابط</button>
             </div>
           </div>
 
           <div class="admin-card">
-            <h3 class="admin-card__title">الطبقات <small>الترتيب من الأسفل للأعلى — اسحب أو استخدم الأسهم</small></h3>
+            <h3 class="admin-card__title">الطبقات <small>الترتيب من الأسفل للأعلى — استخدم الأسهم أو اسحب على الحاسوب</small></h3>
+            <p class="admin-hint layers-hint">اختر طبقة من القائمة أو اضغط عليها داخل المعاينة، ثم حرّكها بالأسهم أو بالسحب. العين تُخفي الطبقة، والقفل يمنع تحريكها بالخطأ.</p>
+            <div id="layerInspector" class="layer-inspector" hidden>
+              <div class="layer-inspector__head">
+                <div><strong id="layerInspectorName">—</strong><small id="layerInspectorType"></small></div>
+                <button type="button" id="btnLayerDeselect" class="btn btn--ghost btn--sm" aria-label="إلغاء تحديد الطبقة">✕</button>
+              </div>
+              <div class="admin-grid4 layer-fields">
+                <label>الموضع X <input id="layerX" type="number" class="input" inputmode="numeric"></label>
+                <label>الموضع Y <input id="layerY" type="number" class="input" inputmode="numeric"></label>
+                <label id="layerWLabel">العرض <input id="layerW" type="number" class="input" inputmode="numeric"></label>
+                <label id="layerHLabel">الارتفاع <input id="layerH" type="number" class="input" inputmode="numeric"></label>
+              </div>
+              <div class="nudge">
+                <div class="nudge__pad" role="group" aria-label="تحريك الطبقة">
+                  <button type="button" class="nudge__btn" data-nudge="up" aria-label="أعلى">↑</button>
+                  <button type="button" class="nudge__btn" data-nudge="left" aria-label="يسار">←</button>
+                  <button type="button" class="nudge__btn" data-nudge="down" aria-label="أسفل">↓</button>
+                  <button type="button" class="nudge__btn" data-nudge="right" aria-label="يمين">→</button>
+                </div>
+                <div class="nudge__side">
+                  <label class="nudge__step">خطوة التحريك
+                    <select id="nudgeStep" class="input">
+                      <option value="1">1 px</option>
+                      <option value="5">5 px</option>
+                      <option value="10" selected>10 px</option>
+                      <option value="50">50 px</option>
+                    </select>
+                  </label>
+                  <div class="nudge__center">
+                    <button type="button" class="btn btn--ghost btn--sm" data-center="x">توسيط أفقياً</button>
+                    <button type="button" class="btn btn--ghost btn--sm" data-center="y">توسيط رأسياً</button>
+                  </div>
+                </div>
+              </div>
+              <small class="admin-hint">بعد اختيار الطبقة يمكنك تحريكها بأسهم لوحة المفاتيح (Shift = 10×).</small>
+              <small id="layerLockNote" class="layer-lock-note" hidden></small>
+            </div>
             <div id="layersList" class="layers-list"></div>
-            <div class="row-gap" style="margin-top:10px">
-              <button type="button" id="btnResetLayers" class="btn btn--ghost btn--sm">إعادة ضبط</button>
+            <div class="row-gap layers-toolbar">
+              <button type="button" id="btnResetLayers" class="btn btn--ghost btn--sm">إعادة ضبط الترتيب</button>
+              <button type="button" id="btnShowAllLayers" class="btn btn--ghost btn--sm">إظهار الكل</button>
+              <button type="button" id="btnUnlockAllLayers" class="btn btn--ghost btn--sm">فتح الكل</button>
               <button type="button" id="btnAddSticker" class="btn btn--ghost btn--sm">+ ملصق / صورة إضافية</button>
             </div>
             <div id="stickersBox" style="margin-top:12px"></div>
@@ -203,7 +243,7 @@
       </div>
       <form id="accountForm" class="admin-card" autocomplete="off">
         <h3 class="admin-card__title">إنشاء حساب جديد</h3>
-        <p class="admin-hint">المديرون يستطيعون رفع وتعديل الفريمات فقط. المالك وحده يدير الحسابات.</p>
+        <p class="admin-hint">المديرون يستطيعون رفع وتعديل الإطارات فقط. المالك وحده يدير الحسابات.</p>
         <div class="admin-grid2">
           <label>الاسم<input id="accName" class="input" maxlength="80" placeholder="اسم الشخص"></label>
           <label>البريد الإلكتروني<input id="accEmail" type="email" class="input" dir="ltr" required></label>
@@ -213,7 +253,7 @@
             <div class="row-gap"><input id="accPass" type="password" class="input" dir="ltr" minlength="10" required autocomplete="new-password"><button type="button" id="btnGenPass" class="btn btn--ghost btn--sm">توليد</button></div>
           </label>
           <label>الدور
-            <select id="accRole" class="input"><option value="admin">مدير (يرفع ويعدّل الفريمات)</option><option value="owner">مالك (+ إدارة الحسابات)</option></select>
+            <select id="accRole" class="input"><option value="admin">مدير (يرفع ويعدّل الإطارات)</option><option value="owner">مالك (+ إدارة الحسابات)</option></select>
           </label>
         </div>
         <button id="btnCreateAcc" type="submit" class="btn btn--amber">إنشاء الحساب</button>
