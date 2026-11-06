@@ -2,7 +2,7 @@
   "id": "./",
   "name": "FRAMEO — إطارك بطريقتك",
   "short_name": "FRAMEO",
-  "description": "صمّم صورتك التكريمية الاحترافية في ثواني — كل المعالجة على جهازك.",
+  "description": "صمّم صورتك التكريمية الاحترافية في ثوانٍ — كل المعالجة على جهازك.",
   "lang": "ar",
   "dir": "rtl",
   "start_url": "./index.html?source=pwa",

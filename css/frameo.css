@@ -44,7 +44,7 @@ body.fx {
   text-wrap: pretty;
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
-  --header-h: 76px;
+  --header-h: calc(76px + env(safe-area-inset-top, 0px));
 }
 .fx a { color: inherit; text-decoration: none; }
 .fx img { max-width: 100%; display: block; }
@@ -53,7 +53,11 @@ body.fx {
 .fx p { margin: 0; text-wrap: pretty; }
 .fx button { font-family: inherit; cursor: pointer; border: 0; background: none; color: inherit; }
 .sr-only { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
-.container { width: 100%; max-width: 1240px; margin-inline: auto; padding-inline: 24px; }
+.container {
+  width: 100%; max-width: 1240px; margin-inline: auto;
+  padding-left: max(24px, env(safe-area-inset-left, 0px));
+  padding-right: max(24px, env(safe-area-inset-right, 0px));
+}
 :focus-visible { outline: 2px solid var(--fx-yellow); outline-offset: 3px; border-radius: 6px; }
 
 /* ---------- Brand masks (اللوجو الحقيقي بتدرّج الهوية) ---------- */
@@ -69,6 +73,7 @@ body.fx {
 .header {
   position: fixed; inset: 0 0 auto 0; z-index: 1000;
   height: var(--header-h);
+  padding-top: env(safe-area-inset-top, 0px);
   background: rgba(10, 13, 28, 0.55);
   -webkit-backdrop-filter: blur(18px) saturate(1.5);
           backdrop-filter: blur(18px) saturate(1.5);
@@ -358,13 +363,16 @@ body.fx {
   .fx-cards, .fx-cards--4 { grid-template-columns: repeat(2, 1fr); }
   .fx-steps { grid-template-columns: repeat(2, 1fr); row-gap: 40px; }
   .fx-steps__line { display: none; }
+  .fx-section { padding: 90px 0; }
+  .fx-head { margin-bottom: 44px; }
 }
 @media (max-width: 768px) {
-  body.fx, :root { --header-h: 64px; }
+  body.fx { --header-h: calc(64px + env(safe-area-inset-top, 0px)); }
   .menu-btn { display: flex; }
   .nav {
     position: fixed; inset: var(--header-h) 0 auto 0; padding: 14px 16px 20px; background: rgba(10, 13, 28, .97);
     -webkit-backdrop-filter: blur(20px); backdrop-filter: blur(20px); border-bottom: 1px solid var(--fx-line);
+    max-height: calc(100dvh - var(--header-h)); overflow-y: auto; -webkit-overflow-scrolling: touch;
     transform: translateY(-12px); opacity: 0; visibility: hidden; pointer-events: none; transition: all .35s var(--fx-ease);
   }
   .nav.open { transform: none; opacity: 1; visibility: visible; pointer-events: auto; }
@@ -388,6 +396,53 @@ body.fx {
   .fx-cta::after { border-radius: 22px; }
 }
 
+/* ---------- الهواتف ---------- */
+@media (max-width: 480px) {
+  .fx-hero { padding-bottom: 44px; }
+  .fx-hero h1 { font-size: clamp(1.9rem, 9vw, 2.5rem); }
+  .fx-hero__sub { font-size: .95rem; line-height: 1.9; }
+  .fx-tag { font-size: .72rem; padding: 6px 12px; flex-wrap: wrap; justify-content: center; gap: 6px; }
+  .fx-lockup { gap: 10px; margin-bottom: 18px; }
+  .fx-hero__cta { width: 100%; flex-direction: column; align-items: stretch; gap: 10px; }
+  .fx-hero__cta .btn { width: 100%; padding: 15px 20px; font-size: .95rem; }
+  .fx-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; width: 100%; margin-top: 28px; }
+  .fx-stat { text-align: center; }
+  .fx-stat + .fx-stat::before { display: none; }
+  .fx-stat b { font-size: 1.45rem; }
+  .fx-stat span { font-size: .7rem; }
+  .fx-visual { min-height: 280px; }
+  .fx-plate { border-radius: 18px; }
+  .fx-ring { width: min(300px, 92%); }
+  .fx-ring--2 { width: min(240px, 74%); }
+  .fx-badge { display: none; }
+  .fx-section { padding: 60px 0; }
+  .fx-head { margin-bottom: 34px; }
+  .fx-head p { font-size: .95rem; line-height: 1.9; }
+  .fx-card { padding: 24px 20px; }
+  .fx-card__icon { width: 50px; height: 50px; border-radius: 14px; }
+  .fx-step__n { width: 58px; height: 58px; font-size: 1.1rem; margin-bottom: 16px; }
+  .fx-cta { padding: 40px 16px; }
+  .fx-cta p { font-size: .95rem; }
+  .fx-page { padding: calc(var(--header-h) + 44px) 0 64px; }
+  .fx-about-hero { margin-bottom: 42px; }
+  .fx-about-hero p { font-size: 1rem; line-height: 2; }
+  .fx-tech { margin: 52px 0; }
+  .fx-footer { padding-top: 48px; padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px)); }
+  .footer__links { gap: 8px 18px; }
+  .fx-footer__word { width: 100%; }
+  .toast-wrap, .toast-container { bottom: calc(20px + env(safe-area-inset-bottom, 0px)); padding-inline: 12px; }
+}
+
+@media (max-width: 380px) {
+  .fx-hero h1 { font-size: 1.75rem; }
+  .fx-hero__sub { font-size: .9rem; }
+  .fx-stat b { font-size: 1.3rem; }
+  .fx-stat span { font-size: .64rem; }
+  .fx-card { padding: 20px 16px; }
+  .fx-chip { padding: 7px 14px; font-size: .82rem; }
+  .fx-footer__word { width: 100%; }
+}
+
 /* ---------- Reduced motion ---------- */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .001s !important; animation-iteration-count: 1 !important; transition-duration: .001s !important; scroll-behavior: auto !important; }
@@ -399,4 +454,3 @@ body.fx {
 .ctrl-btn--text { white-space: nowrap; }
 .frames-empty { grid-column: 1 / -1; text-align: center; color: #7c7f90; padding: 20px; }
 .mobile-nav__btn--primary { background: var(--fx-grad) !important; color: #fff !important; box-shadow: 0 10px 30px rgba(255,45,122,.3); }
-#layersPanel { max-width: 220px; }

@@ -692,8 +692,8 @@
 .fc-layer__tags i { font-style: normal; }
 .fc-layer__move { display: flex; gap: 3px; }
 .fc-layer__move button { min-width: 28px; height: 28px; padding: 0 6px; border-radius: 7px; background: #fff; color: #0D1020; font-weight: 800; }
-@media (max-width: 768px) {
-  .fc-layers { top: auto; bottom: calc(78px + env(safe-area-inset-bottom, 0px)); inset-inline-start: 12px; inset-inline-end: 12px; width: auto; max-height: 46%; }
+@media (max-width: 900px) {
+  .fc-layers { top: auto; bottom: calc(78px + env(safe-area-inset-bottom, 0px)); inset-inline-start: 12px; inset-inline-end: 12px; width: auto; max-width: none; max-height: 46%; }
   .fc-layer { padding: 9px 10px; }
   .fc-layer__move button { min-width: 36px; height: 36px; }
 }
