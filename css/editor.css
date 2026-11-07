@@ -1,5 +1,5 @@
 ﻿/* ========================================
-   FRAME STUDIO â€” Editor Styles
+   FRAME STUDIO — Editor Styles
    Aesthetic: Royal Atelier Workshop
    Velvet stage + parchment console + brass
    ======================================== */
@@ -95,7 +95,8 @@
 
 /* === Editor Layout === */
 .editor-main:has(.editor-layout) {
-  padding-top: calc(var(--header-h) + 50px);
+  /* 72px = شريط الخطوات الثابت (~63px) + هامش تنفّس، وإلا تراكب مع أعلى المحرر */
+  padding-top: calc(var(--header-h) + 72px);
   min-height: 100vh;
   min-height: 100dvh; /* iOS/Android URL-bar safe */
 }
@@ -103,11 +104,11 @@
 .editor-layout {
   display: grid;
   grid-template-columns: var(--sidebar-w) 1fr;
-  min-height: calc(100vh - var(--header-h) - 50px);
-  min-height: calc(100dvh - var(--header-h) - 50px);
+  min-height: calc(100vh - var(--header-h) - 72px);
+  min-height: calc(100dvh - var(--header-h) - 72px);
 }
 
-/* === Sidebar â€” parchment console === */
+/* === Sidebar — parchment console === */
 .sidebar {
   background: linear-gradient(165deg, var(--parchment-2) 0%, var(--parchment) 60%, #efe3c8 100%);
   border-left: 1px solid rgba(201,163,92,0.4);
@@ -515,7 +516,7 @@
   background: var(--parchment-2);
 }
 
-/* === Canvas Area â€” velvet stage === */
+/* === Canvas Area — velvet stage === */
 .canvas-area {
   display: flex;
   position: relative;

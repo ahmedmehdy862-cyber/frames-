@@ -6,7 +6,7 @@
    ======================================== */
 'use strict';
 
-const VERSION = 'frameo-v1.0.4';
+const VERSION = 'frameo-v1.0.5';
 const CORE = 'frameo-core-' + VERSION;
 const RUNTIME = 'frameo-runtime-' + VERSION;
 

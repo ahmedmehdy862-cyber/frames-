@@ -145,7 +145,7 @@
 
 /* ---------- شاشات قصيرة (كمبيوتر/تابلت أفقي) ---------- */
 @media (max-height: 700px) and (min-width: 901px) {
-  .editor-main:has(.editor-layout) { padding-top: calc(var(--header-h) + 42px); }
+  .editor-main:has(.editor-layout) { padding-top: calc(var(--header-h) + 64px); }
   .canvas-area { min-height: 70vh; }
   .sidebar__head { padding: 12px 20px; }
   .sidebar__body { padding: 16px 20px; }

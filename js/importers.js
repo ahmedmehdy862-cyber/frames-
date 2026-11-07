@@ -385,3 +385,6 @@ const Importers = (() => {
 
   return { importFile, sniff, _compose: composeLayers };
 })();
+
+/* admin.js يتحقق من window.Importers — التصريح const لا يضيف خاصية إلى window */
+window.Importers = Importers;
