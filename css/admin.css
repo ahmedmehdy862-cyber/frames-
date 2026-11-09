@@ -161,6 +161,12 @@ input[type="file"]::file-selector-button { margin-inline-end: 12px; padding: 6px
 .imp-hint{opacity:.7;line-height:1.5}
 .imp-foot{display:flex;gap:8px;padding:12px 16px;border-block-start:1px solid rgba(255,255,255,.1)}
 @media(max-width:720px){.imp-body{grid-template-columns:1fr}}
+/* شاشة انتظار قصيرة أثناء قراءة ملفات PSD/PSB/TIFF الكبيرة */
+.imp-overlay--busy{z-index:1001}
+.imp-card--busy{width:auto;min-width:min(340px,90vw);flex-direction:row;align-items:center;gap:12px;padding:18px 22px}
+.imp-busy-text{margin:0;font-weight:700;font-size:.95rem}
+.imp-spinner{width:22px;height:22px;flex:0 0 22px;border-radius:50%;border:3px solid rgba(255,255,255,.18);border-top-color:#ffcf5c;animation:impSpin .8s linear infinite}
+@keyframes impSpin{to{transform:rotate(360deg)}}
 
 /* ===== بحث الإطارات ===== */
 .admin-search { margin: 2px 0 4px; }

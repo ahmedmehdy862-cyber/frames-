@@ -8,8 +8,8 @@
   <meta name="referrer" content="no-referrer">
   <meta name="theme-color" content="#0a0d1c">
   <link rel="icon" type="image/png" sizes="48x48" href="assets/brand/favicon-48.png">
-  <link rel="stylesheet" href="css/frameo.css">
-  <link rel="stylesheet" href="css/admin.css">
+  <link rel="stylesheet" href="css/frameo.css?v=1.0.6">
+  <link rel="stylesheet" href="css/admin.css?v=1.0.6">
 </head>
 <body class="admin-body">
 
@@ -95,7 +95,7 @@
         <div id="emptyState" class="admin-empty">
           <div class="admin-empty__icon">🎨</div>
           <h3>اختر إطاراً لتعديله أو أنشئ إطاراً جديداً</h3>
-          <p>ارفع صورة الإطار (PNG أو SVG أو PSD/TIFF)، حدّد منطقة الصورة الشخصية، واضبط النصوص.</p>
+          <p>ارفع صورة الإطار (PNG أو SVG أو PSD/PSB/TIFF)، حدّد منطقة الصورة الشخصية، واضبط النصوص.</p>
         </div>
 
         <form id="frameForm" class="admin-form" hidden>
@@ -119,8 +119,8 @@
               <label>عرض اللوحة<input type="number" id="fW" class="input" value="2500" min="100" max="10000"></label>
               <label>ارتفاع اللوحة<input type="number" id="fH" class="input" value="2500" min="100" max="10000"></label>
             </div>
-            <label>صورة الإطار (PNG شفاف أو SVG أو WEBP أو PSD/TIFF بطبقات)
-              <input type="file" id="fImageFile" class="input" accept=".png,.svg,.webp,.jpg,.jpeg,.psd,.tif,.tiff,image/png,image/svg+xml,image/webp,image/jpeg">
+            <label>صورة الإطار (PNG شفاف أو SVG أو WEBP أو PSD/PSB/TIFF بطبقات)
+              <input type="file" id="fImageFile" class="input" accept=".png,.svg,.webp,.jpg,.jpeg,.psd,.psb,.tif,.tiff,image/png,image/svg+xml,image/webp,image/jpeg,image/vnd.adobe.photoshop,image/tiff">
               <small id="imgInfo"></small>
             </label>
             <button type="button" id="btnFitCanvas" class="btn btn--ghost btn--sm" hidden>اضبط الكانفاس على أبعاد الصورة</button>
@@ -278,10 +278,10 @@
   <div id="heroModal" class="modal" hidden>
     <div class="modal__card modal__card--wide">
       <h3>صورة واجهة الصفحة الرئيسية</h3>
-      <p class="admin-hint">الصورة التي تظهر في هيرو الرئيسية بدل الافتراضية. المسموح: PNG / SVG / WEBP / JPG، أو PSD / TIFF بطبقات (حتى 45MB بعد التحويل).</p>
+      <p class="admin-hint">الصورة التي تظهر في هيرو الرئيسية بدل الافتراضية. المسموح: PNG / SVG / WEBP / JPG حتى 45MB، أو PSD / PSB / TIFF بطبقات حتى 500MB (يُحوَّل تلقائياً إلى PNG).</p>
       <div class="hero-preview"><img id="heroPreview" alt="معاينة صورة الواجهة"></div>
       <label>اختر صورة جديدة
-        <input type="file" id="heroFile" class="input" accept=".png,.svg,.webp,.jpg,.jpeg,.psd,.tif,.tiff,image/png,image/svg+xml,image/webp,image/jpeg">
+        <input type="file" id="heroFile" class="input" accept=".png,.svg,.webp,.jpg,.jpeg,.psd,.psb,.tif,.tiff,image/png,image/svg+xml,image/webp,image/jpeg,image/vnd.adobe.photoshop,image/tiff">
       </label>
       <div class="row-gap">
         <button id="btnHeroSave" type="button" class="btn btn--amber">حفظ ونشر</button>
@@ -293,14 +293,14 @@
 
   <div id="toastContainer" class="toast-wrap" aria-live="polite"></div>
 
-  <script src="js/vendor/supabase.js"></script>
+  <script src="js/vendor/supabase.js?v=1.0.6"></script>
   <script>if (!window.supabase) document.write('<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"><\/script>');</script>
-  <script src="js/vendor/dompurify.min.js"></script>
+  <script src="js/vendor/dompurify.min.js?v=1.0.6"></script>
   <script>if (!window.DOMPurify) document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"><\/script>');</script>
-  <script src="js/config.js"></script>
-  <script src="js/api.js"></script>
-  <script src="js/app.js"></script>
-  <script src="js/importers.js"></script>
-  <script src="js/admin.js"></script>
+  <script src="js/config.js?v=1.0.6"></script>
+  <script src="js/api.js?v=1.0.6"></script>
+  <script src="js/app.js?v=1.0.6"></script>
+  <script src="js/importers.js?v=1.0.6"></script>
+  <script src="js/admin.js?v=1.0.6"></script>
 </body>
 </html>

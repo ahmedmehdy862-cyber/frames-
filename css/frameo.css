@@ -51,6 +51,8 @@ body.fx {
 .fx ul { list-style: none; margin: 0; padding: 0; }
 .fx h1, .fx h2, .fx h3 { margin: 0; font-family: var(--fx-font); font-weight: 900; line-height: 1.4; letter-spacing: 0; text-wrap: balance; }
 .fx p { margin: 0; text-wrap: pretty; }
+/* إيقاع موحّد بين الفقرات — كان صفراً فيبدو النص مضغوطاً */
+.fx p + p { margin-top: 14px; }
 .fx button { font-family: inherit; cursor: pointer; border: 0; background: none; color: inherit; }
 .sr-only { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
 .container {
@@ -253,7 +255,7 @@ body.fx {
 .fx-over { display: inline-flex; align-items: center; gap: 10px; font-weight: 800; font-size: .85rem; letter-spacing: 0; color: var(--fx-pink); margin-bottom: 12px; }
 .fx-over::before { content: ''; width: 28px; height: 3px; border-radius: 3px; background: var(--fx-grad); }
 .fx-head h2 { font-size: clamp(1.9rem, 3.8vw, 2.9rem); }
-.fx-head p { margin-top: 16px; color: var(--fx-muted); font-size: 1.05rem; line-height: 2; }
+.fx-head p { margin-top: 18px; color: var(--fx-muted); font-size: 1.05rem; line-height: 2.05; }
 
 /* بطاقات المميزات */
 .fx-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
@@ -269,8 +271,9 @@ body.fx {
 .fx-card__icon { position: relative; display: grid; place-items: center; width: 56px; height: 56px; border-radius: 16px; margin-bottom: 20px; color: #fff; background: var(--fx-grad); box-shadow: 0 10px 28px rgba(255, 45, 122, .3); transition: transform .5s var(--fx-ease-spring); }
 .fx-card:hover .fx-card__icon { transform: rotate(-8deg) scale(1.1); }
 .fx-card:nth-child(even) .fx-card__icon { background: linear-gradient(135deg, #ff8a00, #ff2d7a); }
-.fx-card h3 { font-size: 1.2rem; margin-bottom: 8px; }
-.fx-card p { color: var(--fx-muted); font-size: .98rem; line-height: 1.9; }
+.fx-card h3 { font-size: 1.2rem; margin-bottom: 10px; }
+.fx-card p { margin-top: 10px; color: var(--fx-muted); font-size: .98rem; line-height: 2; }
+.fx-card p:first-of-type { margin-top: 0; }
 
 /* الخطوات */
 .fx-steps-wrap { background: linear-gradient(180deg, transparent, rgba(94, 59, 255, .08), transparent); }
@@ -278,16 +281,17 @@ body.fx {
 .fx-steps__line { position: absolute; inset: 34px 12% auto 12%; height: 2px; background: var(--fx-line); overflow: hidden; border-radius: 2px; }
 .fx-steps__line::after { content: ''; position: absolute; inset: 0; background: var(--fx-grad-wide); transform: scaleX(0); transform-origin: right; transition: transform 1.8s var(--fx-ease) .3s; }
 .fx-steps.in .fx-steps__line::after { transform: scaleX(1); }
-.fx-step { position: relative; text-align: center; padding: 0 12px; }
+.fx-step { position: relative; text-align: start; padding: 0 12px; }
 .fx-step__n {
-  position: relative; z-index: 1; display: grid; place-items: center; width: 68px; height: 68px; margin: 0 auto 22px; border-radius: 50%;
+  position: relative; z-index: 1; display: grid; place-items: center; width: 68px; height: 68px; margin: 0 0 22px; border-radius: 50%;
   font-family: var(--fx-font-latin); font-weight: 800; font-size: 1.25rem; color: #fff;
   background: var(--fx-bg-2); border: 2px solid transparent;
   background-image: linear-gradient(var(--fx-bg-2), var(--fx-bg-2)), var(--fx-grad); background-origin: border-box; background-clip: padding-box, border-box;
   box-shadow: 0 0 0 8px var(--fx-bg), 0 12px 30px rgba(94, 59, 255, .3);
 }
-.fx-step h3 { font-size: 1.1rem; margin-bottom: 8px; }
-.fx-step p { color: var(--fx-muted); font-size: .94rem; line-height: 1.9; }
+.fx-step h3 { font-size: 1.1rem; margin-bottom: 10px; }
+.fx-step p { margin-top: 10px; color: var(--fx-muted); font-size: .94rem; line-height: 2; }
+.fx-step p:first-of-type { margin-top: 0; }
 
 /* CTA */
 .fx-cta { position: relative; text-align: center; padding: 72px 28px; border-radius: 32px; overflow: hidden; isolation: isolate; background: var(--fx-bg-2); }
@@ -314,9 +318,9 @@ body.fx {
 .fx-about-hero .fx-lockup { margin-inline: auto; justify-content: center; }
 .fx-about-hero p { color: var(--fx-muted); font-size: 1.1rem; line-height: 2.1; margin-top: 18px; }
 .fx-cards--4 { grid-template-columns: repeat(4, 1fr); }
-.fx-tech { text-align: center; margin: 80px 0; }
-.fx-tech h2 { font-size: 1.6rem; margin-bottom: 22px; }
-.fx-chips { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+.fx-tech { text-align: start; margin: 80px 0; }
+.fx-tech h2 { font-size: 1.6rem; margin-bottom: 26px; }
+.fx-chips { display: flex; flex-wrap: wrap; gap: 10px; justify-content: flex-start; }
 .fx-chip { padding: 8px 18px; border-radius: 999px; background: var(--fx-surface); border: 1px solid var(--fx-line); font-family: var(--fx-font-latin); font-weight: 600; font-size: .9rem; color: var(--fx-muted); transition: transform .3s var(--fx-ease-spring), color .2s, border-color .2s; }
 .fx-chip:hover { transform: translateY(-4px) scale(1.05); color: #fff; border-color: var(--fx-pink); }
 

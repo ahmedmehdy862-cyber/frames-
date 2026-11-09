@@ -1,9 +1,9 @@
 /* ========================================
-   FRAMEO — استيراد الملفات ذات الطبقات (PSD / TIFF)
+   FRAMEO — استيراد الملفات ذات الطبقات (PSD / PSB / TIFF)
    المتصفح لا يفتح هذه الصيغ، فنحوّلها داخل متصفح الأدمن إلى PNG ثم يُرفع الـ PNG فقط
    (التخزين والصلاحيات لم تتغيّر). المكتبات تُحمَّل عند الحاجة فقط:
-     PSD  ← ag-psd   (يدعم RGB 8-bit فقط؛ لا CMYK ولا 16-bit ولا PSB)
-     TIFF ← UTIF.js  (الصفحة المدمجة، أو الطبقات المحفوظة من Photoshop)
+     PSD/PSB ← ag-psd  (RGB أو Grayscale أو Indexed بدقة 8/16/32-bit؛ لا يدعم CMYK ولا Lab)
+     TIFF    ← UTIF.js (الصفحة المدمجة، أو الطبقات المحفوظة من Photoshop)
    ======================================== */
 'use strict';
 
@@ -103,6 +103,19 @@ const Importers = (() => {
     return ok;
   }
 
+  /* ---------- شاشة انتظار أثناء قراءة الملفات الكبيرة ---------- */
+  let busy = null;
+  function beginBusy(text) {
+    endBusy();
+    const ov = el('div', 'imp-overlay imp-overlay--busy');
+    ov.setAttribute('role', 'status'); ov.setAttribute('aria-live', 'polite');
+    const card = el('div', 'imp-card imp-card--busy');
+    card.append(el('span', 'imp-spinner'), el('p', 'imp-busy-text', text));
+    ov.append(card); document.body.append(ov);
+    busy = { ov, set(t) { const p = ov.querySelector('.imp-busy-text'); if (p) p.textContent = t; }, close() { ov.remove(); } };
+  }
+  function endBusy() { if (busy) { busy.close(); busy = null; } }
+
   /* ======================================================
      PSD
      ====================================================== */
@@ -169,6 +182,7 @@ const Importers = (() => {
     const srcLabel = opts.source || 'PSD';
     return new Promise(resolve => {
       const sh = shell('استيراد ملف ' + srcLabel + (opts.layered ? ' — طبقات' : ''), fileName + ' — ' + psd.width + '×' + psd.height);
+      endBusy();
       const left = el('div', 'imp-left'); const right = el('div', 'imp-right');
       const prev = mk(10, 10); prev.className = 'imp-preview'; left.append(prev);
       const warn = el('p', 'imp-warn'); left.append(warn);
@@ -251,10 +265,13 @@ const Importers = (() => {
     try { psd = window.agPsd.readPsd(buf, { skipThumbnail: true }); }
     catch (e) {
       const m = String((e && e.message) || e);
-      if (/color mode|colorMode|unsupported|not supported/i.test(m)) fail('وضع ألوان الملف غير مدعوم. احفظ الملف بوضع RGB و8-bit ثم أعد المحاولة. (' + m + ')');
+      if (/color mode|colorMode/i.test(m)) fail('وضع ألوان الملف غير مدعوم (CMYK أو Lab غالباً). في Photoshop: Image → Mode → RGB Color، ثم احفظ نسخة جديدة وأعد المحاولة.');
+      if (/bitsPerChannel Not supproted/i.test(m)) fail('دقة قنوات الملف غير مدعومة. احفظ الملف بدقة 8-bit أو 16-bit (Image → Mode → 8/16 Bits/Channel).');
+      if (/Invalid bitsPerChannel|Invalid channel count/i.test(m)) fail('بنية الملف غير صالحة أو تالفة. أعد حفظه من Photoshop بصيغة PSD ثم جرّب مرة أخرى.');
       fail('تعذّر قراءة بيانات الطبقات: ' + m);
     }
     if (!psd || !psd.width || !psd.height) fail('الملف فارغ أو تالف.');
+    if (!psd.children && !(psd.canvas && psd.canvas.width)) fail('لم أجد طبقات قابلة للقراءة داخل الملف. افتحه في Photoshop وفعّل Maximize Compatibility ثم احفظ نسخة جديدة.');
     if (psd.width * psd.height > MAX_PIXELS) fail('أبعاد الملف كبيرة جداً (' + psd.width + '×' + psd.height + '). قلّلها إلى أقل من 120 ميجابكسل.');
     return psd;
   }
@@ -303,6 +320,7 @@ const Importers = (() => {
   function pickTiffPage(buf, pages, fileName) {
     return new Promise(resolve => {
       const sh = shell('استيراد ملف TIFF', fileName + ' — ' + pages.length + ' صفحات');
+      endBusy();
       const left = el('div', 'imp-left'); const right = el('div', 'imp-right');
       const prev = mk(10, 10); prev.className = 'imp-preview'; left.append(prev);
       sh.body.append(left, right);
@@ -373,14 +391,24 @@ const Importers = (() => {
      الواجهة العامة
      ====================================================== */
   async function importFile(file) {
-    if (file.size > MAX_SRC) fail('حجم الملف أكبر من 500MB.');
-    const buf = await file.arrayBuffer();
+    if (!file) fail('لم يتم اختيار ملف.');
+    if (file.size > MAX_SRC) fail('حجم الملف أكبر من 500MB. صغّر الملف أو صدّر نسخة PSD أخف ثم أعد المحاولة.');
+    let buf;
+    try { buf = await file.arrayBuffer(); }
+    catch (e) { fail('تعذّر قراءة الملف من الجهاز — قد يكون الملف مقفولاً أو محذوفاً. أعد اختياره.'); }
     const kind = sniff(new Uint8Array(buf, 0, Math.min(16, buf.byteLength)));
-    if (kind === 'psb') fail('صيغة PSB (المستندات الكبيرة) غير مدعومة. احفظ الملف كـ PSD عادي.');
     if (kind === 'bigtiff') fail('صيغة BigTIFF غير مدعومة. احفظ الملف كـ TIFF عادي.');
-    if (kind === 'psd') return importPsd(file, buf);
-    if (kind === 'tiff') return importTiff(file, buf);
-    fail('محتوى الملف ليس PSD ولا TIFF صالحاً.');
+    const isPsd = kind === 'psd' || kind === 'psb';
+    if (!isPsd && kind !== 'tiff') fail('محتوى الملف ليس PSD أو PSB أو TIFF صالحاً. تأكد أنك تختار ملف التصميم نفسه وليس معاينة JPG.');
+
+    const mb = (file.size / 1048576).toFixed(file.size > 10 * 1048576 ? 0 : 1);
+    beginBusy((isPsd ? 'جارٍ قراءة طبقات ' + (kind === 'psb' ? 'PSB' : 'PSD') : 'جارٍ قراءة ملف TIFF') + '… (' + mb + 'MB)');
+    try {
+      if (isPsd) return await importPsd(file, buf);
+      return await importTiff(file, buf);
+    } finally {
+      endBusy();
+    }
   }
 
   return { importFile, sniff, _compose: composeLayers };

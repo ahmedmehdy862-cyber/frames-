@@ -4,7 +4,7 @@
 ولوحة إدارة آمنة لرفع الفريمات وإدارتها.
 
 - **الموقع العام:** `index.html` · `editor.html` · `about.html`
-- **الإدارة:** `admin.html` (دخول بحسابات حقيقية، رفع PNG/SVG/WEBP/JPG واستيراد PSD/TIFF، عام/خاص، إدارة الحسابات، صورة واجهة الرئيسية)
+- **الإدارة:** `admin.html` (دخول بحسابات حقيقية، رفع PNG/SVG/WEBP/JPG واستيراد PSD/PSB/TIFF، عام/خاص، إدارة الحسابات، صورة واجهة الرئيسية)
 - **الواجهة:** RTL كاملة، هوية FRAMEO، موشن (Splash، لوجو متحرك، Reveal، Tilt، Marquee) مع احترام `prefers-reduced-motion`
 - **PWA:** يثبَّت على الهاتف ويعمل أوفلاين بعد أول زيارة (الواجهة + المحرر). الإدارة تحتاج إنترنت.
 
@@ -18,7 +18,7 @@ index.html / editor.html / about.html / admin.html
 sw.js · manifest.webmanifest               العمل أوفلاين + التثبيت على الهاتف
 css/    frameo.css (الهوية + الموشن) · style.css, editor.css, responsive.css (المحرر) · admin.css
 js/     config.js (إعدادات الاتصال) · home.js (صورة الواجهة) · api.js (Supabase) · frames.js · editor.js
-        · export.js · admin.js · importers.js (PSD/TIFF) · app.js
+        · export.js · admin.js · importers.js (PSD/PSB/TIFF) · app.js
 js/vendor/   مكتبات محلية: fabric · supabase-js · DOMPurify · ag-psd · UTIF · pako
 supabase/schema.sql                       الجداول + RLS + التخزين + إعدادات الموقع
 supabase/functions/admin-users/index.ts   إدارة الحسابات (service_role على السيرفر فقط)
@@ -31,7 +31,7 @@ config/frames.json   نسخة احتياطية عامة للفريمات الأ�
 - التثبيت على أندرويد: قائمة المتصفح ← «تثبيت التطبيق» أو «إضافة إلى الشاشة الرئيسية».
 - التثبيت على iPhone: افتح الموقع في **Safari** ← زر المشاركة ← «إضافة إلى الشاشة الرئيسية».
 - لوحة الإدارة والحسابات تحتاج إنترنت دائماً؛ لا تُخزَّن في الكاش.
-- أي تحديث جديد للملفات يرفع رقم `VERSION` في `sw.js` لإلغاء الكاش القديم.
+- أي تحديث جديد للملفات يرفع رقم `VERSION` في `sw.js` ورقم `?v=` في صفحات HTML لإلغاء الكاش القديم فوراً.
 
 ## نموذج الأمان باختصار
 - الصلاحيات في **قاعدة البيانات (RLS)**: الزائر يقرأ العام فقط ولا يقدر يقرأ عمود `access_key`؛ الكتابة والرفع للإدارة النشطة فقط.

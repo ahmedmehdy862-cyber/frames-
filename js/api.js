@@ -201,11 +201,18 @@ const Api = (() => {
   async function uploadImage(blob, ext) {
     ext = String(ext || '').toLowerCase().replace('jpeg', 'jpg');
     if (!MIME[ext]) throw new Error('unsupported_type');
+    if (!blob || !blob.size) throw new Error('الملف فارغ — أعد اختيار الصورة.');
+    if (blob.size > 45 * 1024 * 1024) throw new Error('payload_too_large');
     const path = (crypto.randomUUID ? crypto.randomUUID() : genKey()) + '.' + ext;
     const { error } = await client().storage.from(BUCKET).upload(path, blob, {
       contentType: MIME[ext], cacheControl: '31536000', upsert: false
     });
-    if (error) throw error;
+    if (error) {
+      const m = String(error.message || '');
+      if (/bucket.*not found/i.test(m)) throw new Error('bucket_not_found');
+      if (/payload too large|entity too large|413/i.test(m)) throw new Error('payload_too_large');
+      throw error;
+    }
     return path;
   }
   async function copyImage(path) {

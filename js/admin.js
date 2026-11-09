@@ -12,7 +12,7 @@
   const toast = (m, t = 'info', d = 4500) => App.showToast(m, t, d);
   const show = (id, on = true) => { const el = $(id); if (el) el.hidden = !on; };
 
-  const MAX_IMG = 15 * 1024 * 1024;
+  const MAX_IMG = 45 * 1024 * 1024;
   const ID_RE = /^[a-z0-9][a-z0-9-]{1,62}$/;
   const KEY_RE = /^[A-Za-z0-9_-]{1,40}$/;
   const IDLE_MS = 30 * 60 * 1000;
@@ -42,7 +42,10 @@
     cannot_delete_self: 'لا يمكنك حذف حسابك بنفسك.',
     forbidden: 'ليست لديك صلاحية لهذه العملية.',
     unauthorized: 'انتهت الجلسة، سجّل الدخول من جديد.',
-    not_found: 'الحساب غير موجود.'
+    not_found: 'الحساب غير موجود.',
+    unsupported_type: 'صيغة الملف غير مدعومة للرفع. المسموح: PNG أو SVG أو WEBP أو JPG (ملفات PSD/TIFF تُحوَّل تلقائياً إلى PNG).',
+    payload_too_large: 'حجم الصورة أكبر من الحد المسموح في التخزين (45MB). صدّرها بحجم أصغر ثم أعد المحاولة.',
+    bucket_not_found: 'مساحة التخزين (bucket: frames) غير موجودة في Supabase — أنشئها باسم frames.'
   };
   function errText(e) {
     const m = (e && e.message) || String(e || '');
@@ -51,8 +54,11 @@
     if (/Failed to send a request|FunctionsFetchError|404|not found/i.test(m) && /function|Edge|Failed/i.test(m)) return 'تعذّر الوصول لدالة إدارة الحسابات (admin-users). تأكد من نشرها في Supabase.';
     if (/duplicate key|already exists/i.test(m)) return 'المعرّف (id) مستخدم لإطار آخر.';
     if (/row-level security|permission denied|violates row/i.test(m)) return 'ليست لديك صلاحية لهذه العملية (RLS).';
-    if (/mime|not supported|invalid_mime/i.test(m)) return 'نوع الملف غير مسموح به في التخزين.';
+    if (/bucket.*not found|bucket_not_found/i.test(m)) return 'مساحة التخزين (bucket: frames) غير موجودة في Supabase — أنشئها باسم frames.';
+    if (/payload too large|entity too large|exceeded the maximum allowed size|413/i.test(m)) return 'حجم الصورة أكبر من الحد المسموح في التخزين. صدّرها بحجم أصغر ثم أعد المحاولة.';
+    if (/mime|not supported|invalid_mime|unsupported/i.test(m)) return 'نوع الملف غير مسموح به في التخزين.';
     if (/exceeded|too large|size/i.test(m)) return 'حجم الملف أكبر من المسموح.';
+    if (/jwt|token.*expired|session.*missing|invalid.*session/i.test(m)) return 'انتهت الجلسة، سجّل الدخول من جديد.';
     return m || 'حدث خطأ غير متوقع.';
   }
 
@@ -216,7 +222,7 @@
       info.textContent = 'صورة جديدة جاهزة للرفع: ' + pending.w + '×' + pending.h + ' • ' + pending.ext.toUpperCase() + ' • ' + Math.round(pending.size / 1024) + 'KB';
       show('btnFitCanvas', pending.w !== w || pending.h !== h);
     } else {
-      info.textContent = current && current.imagePath ? 'الصورة الحالية محفوظة على الخادم.' : 'لم تُرفع صورة بعد — PNG, SVG, WEBP, JPG حتى 15MB، وPSD/TIFF حتى 500MB (يُحوَّل تلقائياً إلى PNG عالي الجودة).';
+      info.textContent = current && current.imagePath ? 'الصورة الحالية محفوظة على الخادم.' : 'لم تُرفع صورة بعد — PNG, SVG, WEBP, JPG حتى 45MB، وPSD/PSB/TIFF حتى 500MB (يُحوَّل تلقائياً إلى PNG عالي الجودة).';
       show('btnFitCanvas', false);
     }
   }
@@ -294,7 +300,7 @@
     d.className = 'text-field'; d.dataset.sid = s.id; d.dataset.path = s.imagePath || '';
     d.innerHTML = `<div class="text-field__head"><strong>ملصق: ${esc(s.id)}</strong><button type="button" class="btn btn--danger btn--sm" data-del>حذف</button></div>
       <label>الاسم<input data-f="name" class="input" value="${esc(s.name)}" maxlength="60"></label>
-      <label>الصورة (PNG / SVG / WEBP / PSD / TIFF)<input type="file" data-file accept=".png,.svg,.webp,.jpg,.jpeg,.psd,.tif,.tiff,image/png,image/svg+xml,image/webp,image/jpeg" class="input"></label>
+      <label>الصورة (PNG / SVG / WEBP / PSD / PSB / TIFF)<input type="file" data-file accept=".png,.svg,.webp,.jpg,.jpeg,.psd,.psb,.tif,.tiff,image/png,image/svg+xml,image/webp,image/jpeg,image/vnd.adobe.photoshop,image/tiff" class="input"></label>
       <small data-state>${s.imagePath ? 'صورة محفوظة.' : 'لم تُرفع صورة بعد.'}</small>
       <div class="admin-grid4">
         <label>X<input data-f="x" type="number" class="input" value="${+s.x || 0}"></label>
@@ -327,6 +333,7 @@
           d.querySelector('[data-f="w"]').value = Math.round(prep.w * k); d.querySelector('[data-f="h"]').value = Math.round(prep.h * k);
         }
         markDirty(); drawPreview();
+        e.target.value = '';   // يسمح بإعادة اختيار الملف نفسه
       } catch (err) { st.textContent = 'فشل: ' + errText(err); toast(errText(err), 'error'); e.target.value = ''; }
     });
     return d;
@@ -713,12 +720,13 @@
     let ext = name.includes('.') ? name.split('.').pop() : '';
     if (ext === 'jpeg') ext = 'jpg';
     if (ext === 'tif') ext = 'tiff';
-    if (['psd', 'tiff'].includes(ext)) {
-      if (!window.Importers) throw new Error('وحدة استيراد PSD/TIFF لم تُحمَّل.');
-      return Importers.importFile(file);   // يرجع PNG جاهز، أو null لو أُلغي
+    if (['psd', 'psb', 'tiff'].includes(ext)) {
+      const imp = window.Importers || (typeof Importers !== 'undefined' ? Importers : null);
+      if (!imp || typeof imp.importFile !== 'function') throw new Error('وحدة استيراد PSD/TIFF لم تُحمَّل بعد. أعد تحميل الصفحة ثم جرّب مرة أخرى.');
+      return imp.importFile(file);   // يرجع PNG جاهز، أو null لو أُلغي
     }
-    if (!['png', 'svg', 'webp', 'jpg'].includes(ext)) throw new Error('الصيغة غير مدعومة — ارفع PNG أو SVG أو WEBP أو JPG أو PSD أو TIFF.');
-    if (file.size > MAX_IMG) throw new Error('حجم الملف أكبر من 15MB.');
+    if (!['png', 'svg', 'webp', 'jpg'].includes(ext)) throw new Error('الصيغة غير مدعومة — ارفع PNG أو SVG أو WEBP أو JPG أو PSD/PSB أو TIFF.');
+    if (file.size > MAX_IMG) throw new Error('حجم الصورة أكبر من 45MB. صغّرها أو صدّرها بدقة أقل ثم أعد المحاولة.');
     if (ext === 'svg') {
       const s = sanitizeSvg(await file.text());
       const blob = new Blob([s.text], { type: 'image/svg+xml' });
@@ -747,6 +755,7 @@
       }
       if (prep.note) toast(prep.note, 'info', 8000);
       markDirty(); updateImageInfo(); drawPreview();
+      e.target.value = '';   // يسمح باختيار الملف نفسه مرة أخرى بعد التعديل
     } catch (err) { toast(errText(err), 'error'); e.target.value = ''; }
   }
 

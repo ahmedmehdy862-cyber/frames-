@@ -6,7 +6,7 @@
    ======================================== */
 'use strict';
 
-const VERSION = 'frameo-v1.0.5';
+const VERSION = 'frameo-v1.0.6';
 const CORE = 'frameo-core-' + VERSION;
 const RUNTIME = 'frameo-runtime-' + VERSION;
 
@@ -96,7 +96,8 @@ async function networkFirst(request, cacheName) {
     if (res && res.ok) put(cacheName, request, res.clone());
     return res;
   } catch (e) {
-    const cached = await caches.match(request);
+    // ignoreSearch: الروابط تحمل ?v=... بعد كل تحديث، والكاش قد يحمل نسخة بلا معامل
+    const cached = await caches.match(request, { ignoreSearch: true });
     if (cached) return cached;
     throw e;
   }
@@ -180,6 +181,13 @@ self.addEventListener('fetch', event => {
     return;
   }
 
-  // ملفات الموقع الثابتة
+  // الكود والأنماط: من الشبكة أولاً حتى يظهر أي تحديث فوراً (والكاش للعمل دون اتصال)
+  // بدون ذلك يبقى الزائر على نسخة قديمة من importers.js بعد النشر ويظن أن الرفع معطّل.
+  if (/\.(?:js|css)$/i.test(url.pathname) || /\/js\/|\/css\//.test(url.pathname)) {
+    event.respondWith(networkFirst(request, CORE));
+    return;
+  }
+
+  // ملفات الموقع الثابتة (صور، خطوط، …)
   event.respondWith(staleWhileRevalidate(request, CORE));
 });
